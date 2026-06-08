@@ -82,10 +82,10 @@ Instead of relying on standard, slow memory-mapped I/O buffers, our architecture
 ## 🤝 Acknowledgements
 
 This project was built as part of the 50.002 Computation Structures curriculum by **No.1 DesignAI Team (Team 14)**:
-* **Chan Yong Ze:** Hardware design, enclosure assembly, and structural fabrication.
-* **Zhang Xirui Asher:** Project management, task coordination, and FSM integration logic.
 * **Yip Jing Han:** Core gameplay loop architecture and Python terminal proof-of-concept modeling.
+* **Chan Yong Ze:** Hardware design, enclosure assembly, and and I/O signal interfacing logic.
 * **Kwok Zhan Rui:** Circuit design, wiring topologies, and physical prototyping layout.
+* **Zhang Xirui Asher:** Project management, task coordination, and FSM integration logic.
 * **Ong Yu Hang:** Architecture optimization, datapath efficiency modifications, and asset design.
 * **Rajeev Bharath:** Gameplay balancing, refresh clock rates, and difficulty testing.
 * **Lin Chao Ran:** Logistics procurement, storage management, and hardware assembly support.
