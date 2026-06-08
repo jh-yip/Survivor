@@ -1,4 +1,3 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/tBQ9GeGH)
 # 2026 50.002 1D Project
 This project is written in Lucid V2 for Alchitry Au FPGA (v1). Open this project using Alchitry Labs V2.
 
