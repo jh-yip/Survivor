@@ -1,0 +1,261 @@
+/******************************************************************************
+
+   coordinate_generator: This module outputs two "random" coordinates.
+   edge coordinates are any coordinate along the 1-square wide edge for enemy spawns.
+   ammo coordinates are any coordinate in the inner 12x12 square (excludes the 2-square wide border).
+   
+   This module does not use a pseudorandom algorithm.
+   it simply relies on a counter that reads from a scrambled ROM.
+   
+******************************************************************************/
+module coordinate_generator (
+    input clk,  // clock
+    output random_edge_coords[8],
+    output random_ammo_coords[8]
+) {
+    counter random_edge_coords_counter(.clk(clk), .rst(1b0), #SIZE($clog2(61)), #TOP(60)) // there are 60 possible edge coords, 1 extra to prevent deadlock
+    counter random_ammo_coords_counter(.clk(clk), .rst(1b0), #SIZE($clog2(144)), #TOP(143)) // there are 144 possible ammo coords
+    
+    sig random_edge_coords_index[6] = random_edge_coords_counter.value
+    sig random_ammo_coords_index[8] = random_ammo_coords_counter.value
+    
+    always {
+        // random_edge_coords (random order)
+        case (random_edge_coords_index) {
+            0:  random_edge_coords = 8hF3
+            1:  random_edge_coords = 8h07
+            2:  random_edge_coords = 8hA0
+            3:  random_edge_coords = 8h3F
+            4:  random_edge_coords = 8h02
+            5:  random_edge_coords = 8hFC
+            6:  random_edge_coords = 8h60
+            7:  random_edge_coords = 8h1F
+            8:  random_edge_coords = 8hF0
+            9:  random_edge_coords = 8h0A
+            10: random_edge_coords = 8h8F
+            11: random_edge_coords = 8h20
+            12: random_edge_coords = 8h0D
+            13: random_edge_coords = 8hC0
+            14: random_edge_coords = 8hF8
+            15: random_edge_coords = 8h40
+            16: random_edge_coords = 8h01
+            17: random_edge_coords = 8hFE
+            18: random_edge_coords = 8h90
+            19: random_edge_coords = 8h7F
+            20: random_edge_coords = 8hF5
+            21: random_edge_coords = 8h0B
+            22: random_edge_coords = 8hDF
+            23: random_edge_coords = 8h5F
+            24: random_edge_coords = 8h06
+            25: random_edge_coords = 8hF2
+            26: random_edge_coords = 8h30
+            27: random_edge_coords = 8hE0
+            28: random_edge_coords = 8h04
+            29: random_edge_coords = 8hBF
+            30: random_edge_coords = 8h10
+            31: random_edge_coords = 8hF9
+            32: random_edge_coords = 8h6F
+            33: random_edge_coords = 8h0E
+            34: random_edge_coords = 8h9F
+            35: random_edge_coords = 8hF6
+            36: random_edge_coords = 8h2F
+            37: random_edge_coords = 8hCF
+            38: random_edge_coords = 8h09
+            39: random_edge_coords = 8hAF
+            40: random_edge_coords = 8h4F
+            41: random_edge_coords = 8hF1
+            42: random_edge_coords = 8hEF
+            43: random_edge_coords = 8h03
+            44: random_edge_coords = 8h50
+            45: random_edge_coords = 8hFB
+            46: random_edge_coords = 8h80
+            47: random_edge_coords = 8h08
+            48: random_edge_coords = 8h70
+            49: random_edge_coords = 8hD0
+            50: random_edge_coords = 8h05
+            51: random_edge_coords = 8hF4
+            52: random_edge_coords = 8hB0
+            53: random_edge_coords = 8h0C
+            54: random_edge_coords = 8hF7
+            55: random_edge_coords = 8h3F
+            56: random_edge_coords = 8h1F
+            57: random_edge_coords = 8h20
+            58: random_edge_coords = 8hFA
+            59: random_edge_coords = 8hFF
+            60: random_edge_coords = 8h00 // extra
+            default: random_edge_coords = 8hx
+        }       
+        
+        // random_ammo_coords
+        case (random_ammo_coords_index) {
+            // Row 2
+            0: random_ammo_coords = 8h22
+            1: random_ammo_coords = 8h23
+            2: random_ammo_coords = 8h24
+            3: random_ammo_coords = 8h25
+            4: random_ammo_coords = 8h26
+            5: random_ammo_coords = 8h27
+            6: random_ammo_coords = 8h28
+            7: random_ammo_coords = 8h29
+            8: random_ammo_coords = 8h2A
+            9: random_ammo_coords = 8h2B
+            10: random_ammo_coords = 8h2C
+            11: random_ammo_coords = 8h2D
+            
+            // Row 3
+            12: random_ammo_coords = 8h32
+            13: random_ammo_coords = 8h33
+            14: random_ammo_coords = 8h34
+            15: random_ammo_coords = 8h35
+            16: random_ammo_coords = 8h36
+            17: random_ammo_coords = 8h37
+            18: random_ammo_coords = 8h38
+            19: random_ammo_coords = 8h39
+            20: random_ammo_coords = 8h3A
+            21: random_ammo_coords = 8h3B
+            22: random_ammo_coords = 8h3C
+            23: random_ammo_coords = 8h3D
+            
+            // Row 4
+            24: random_ammo_coords = 8h42
+            25: random_ammo_coords = 8h43
+            26: random_ammo_coords = 8h44
+            27: random_ammo_coords = 8h45
+            28: random_ammo_coords = 8h46
+            29: random_ammo_coords = 8h47
+            30: random_ammo_coords = 8h48
+            31: random_ammo_coords = 8h49
+            32: random_ammo_coords = 8h4A
+            33: random_ammo_coords = 8h4B
+            34: random_ammo_coords = 8h4C
+            35: random_ammo_coords = 8h4D
+            
+            // Row 5
+            36: random_ammo_coords = 8h52
+            37: random_ammo_coords = 8h53
+            38: random_ammo_coords = 8h54
+            39: random_ammo_coords = 8h55
+            40: random_ammo_coords = 8h56
+            41: random_ammo_coords = 8h57
+            42: random_ammo_coords = 8h58
+            43: random_ammo_coords = 8h59
+            44: random_ammo_coords = 8h5A
+            45: random_ammo_coords = 8h5B
+            46: random_ammo_coords = 8h5C
+            47: random_ammo_coords = 8h5D
+            
+            // Row 6
+            48: random_ammo_coords = 8h62
+            49: random_ammo_coords = 8h63
+            50: random_ammo_coords = 8h64
+            51: random_ammo_coords = 8h65
+            52: random_ammo_coords = 8h66
+            53: random_ammo_coords = 8h67
+            54: random_ammo_coords = 8h68
+            55: random_ammo_coords = 8h69
+            56: random_ammo_coords = 8h6A
+            57: random_ammo_coords = 8h6B
+            58: random_ammo_coords = 8h6C
+            59: random_ammo_coords = 8h6D
+            
+            // Row 7
+            60: random_ammo_coords = 8h72
+            61: random_ammo_coords = 8h73
+            62: random_ammo_coords = 8h74
+            63: random_ammo_coords = 8h75
+            64: random_ammo_coords = 8h76
+            65: random_ammo_coords = 8h77
+            66: random_ammo_coords = 8h78
+            67: random_ammo_coords = 8h79
+            68: random_ammo_coords = 8h7A
+            69: random_ammo_coords = 8h7B
+            70: random_ammo_coords = 8h7C
+            71: random_ammo_coords = 8h7D
+            
+            // Row 8
+            72: random_ammo_coords = 8h82
+            73: random_ammo_coords = 8h83
+            74: random_ammo_coords = 8h84
+            75: random_ammo_coords = 8h85
+            76: random_ammo_coords = 8h86
+            77: random_ammo_coords = 8h87
+            78: random_ammo_coords = 8h88
+            79: random_ammo_coords = 8h89
+            80: random_ammo_coords = 8h8A
+            81: random_ammo_coords = 8h8B
+            82: random_ammo_coords = 8h8C
+            83: random_ammo_coords = 8h8D
+            
+            // Row 9
+            84: random_ammo_coords = 8h92
+            85: random_ammo_coords = 8h93
+            86: random_ammo_coords = 8h94
+            87: random_ammo_coords = 8h95
+            88: random_ammo_coords = 8h96
+            89: random_ammo_coords = 8h97
+            90: random_ammo_coords = 8h98
+            91: random_ammo_coords = 8h99
+            92: random_ammo_coords = 8h9A
+            93: random_ammo_coords = 8h9B
+            94: random_ammo_coords = 8h9C
+            95: random_ammo_coords = 8h9D
+            
+            // Row 10
+            96: random_ammo_coords = 8hA2
+            97: random_ammo_coords = 8hA3
+            98: random_ammo_coords = 8hA4
+            99: random_ammo_coords = 8hA5
+            100: random_ammo_coords = 8hA6
+            101: random_ammo_coords = 8hA7
+            102: random_ammo_coords = 8hA8
+            103: random_ammo_coords = 8hA9
+            104: random_ammo_coords = 8hAA
+            105: random_ammo_coords = 8hAB
+            106: random_ammo_coords = 8hAC
+            107: random_ammo_coords = 8hAD
+            
+            // Row 11
+            108: random_ammo_coords = 8hB2
+            109: random_ammo_coords = 8hB3
+            110: random_ammo_coords = 8hB4
+            111: random_ammo_coords = 8hB5
+            112: random_ammo_coords = 8hB6
+            113: random_ammo_coords = 8hB7
+            114: random_ammo_coords = 8hB8
+            115: random_ammo_coords = 8hB9
+            116: random_ammo_coords = 8hBA
+            117: random_ammo_coords = 8hBB
+            118: random_ammo_coords = 8hBC
+            119: random_ammo_coords = 8hBD
+            
+            // Row 12
+            120: random_ammo_coords = 8hC2
+            121: random_ammo_coords = 8hC3
+            122: random_ammo_coords = 8hC4
+            123: random_ammo_coords = 8hC5
+            124: random_ammo_coords = 8hC6
+            125: random_ammo_coords = 8hC7
+            126: random_ammo_coords = 8hC8
+            127: random_ammo_coords = 8hC9
+            128: random_ammo_coords = 8hCA
+            129: random_ammo_coords = 8hCB
+            130: random_ammo_coords = 8hCC
+            131: random_ammo_coords = 8hCD
+            
+            // Row 13
+            132: random_ammo_coords = 8hD2
+            133: random_ammo_coords = 8hD3
+            134: random_ammo_coords = 8hD4
+            135: random_ammo_coords = 8hD5
+            136: random_ammo_coords = 8hD6
+            137: random_ammo_coords = 8hD7
+            138: random_ammo_coords = 8hD8
+            139: random_ammo_coords = 8hD9
+            140: random_ammo_coords = 8hDA
+            141: random_ammo_coords = 8hDB
+            142: random_ammo_coords = 8hDC
+            143: random_ammo_coords = 8hDD
+            default: random_ammo_coords = 8hx
+        }
+    }
+}

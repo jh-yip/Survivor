@@ -1,0 +1,22 @@
+/******************************************************************************
+
+   set_reset_latch: This module outputs LOW until it receives HIGH, then
+   outputs HIGH thereafter until reset.
+   
+******************************************************************************/
+module set_reset_latch (
+    input clk,  // clock
+    input rst,  // reset
+    input in,
+    output flag
+) {
+    dff latch(.clk(clk), .rst(rst), #INIT(0))
+    
+    always {
+        latch.d = latch.q
+        if (in) {
+            latch.d = 1b1
+        }
+        flag = latch.q
+    }
+}

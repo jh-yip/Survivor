@@ -1,0 +1,15 @@
+/******************************************************************************
+
+   mux2to1: This module outputs 1 of 2 input signals based on 1 select bit.
+   
+******************************************************************************/
+module mux2to1 (
+    input in_0,
+    input in_1,
+    input s,
+    output out
+) {
+    always {
+        out = (s) ? in_1 : in_0                
+    }
+}

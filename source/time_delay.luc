@@ -1,0 +1,47 @@
+/******************************************************************************
+
+   time_delay: This module detects a rising edge at time t and outputs a
+   1-clock-cycle long HIGH at time t+2^DIV.
+   If another rising edge is detected before the delayed signal is output,
+   the delay resets starting from the latest rising edge.
+   
+******************************************************************************/
+module time_delay #(
+    DIV = 20 : DIV >= 0
+)(
+    input clk,  // clock
+    input rst,  // reset
+    input in,
+    output out
+) {
+    dff state[2](.clk(clk), .rst(rst), #INIT(0))
+    counter delay(.clk(clk), #SIZE(1), #TOP(1), #DIV(DIV))
+    
+    edge_detector in_edge(.clk(clk), #RISE(1), #FALL(0), .in(in))
+    edge_detector delay_edge(.clk(clk), #RISE(1), #FALL(0), .in(delay.value))
+    
+    enum States {
+        IDLE,
+        ACTIVE
+    }
+
+    always {
+        delay.rst = 1b0
+        out = 1b0
+        
+        case (state.q) {
+            States.IDLE:
+                delay.rst = 1b1 // suppress counter when idle
+                if (in_edge.out) {
+                    state.d = States.ACTIVE
+                }
+            States.ACTIVE:
+                if (in_edge.out) {
+                    delay.rst = 1b1 // reset delay counter if another input is detected before delay is complete
+                } else if (delay_edge.out) {
+                    out = 1b1
+                    state.d = States.IDLE
+                }
+        }
+    }
+}

@@ -1,0 +1,38 @@
+/******************************************************************************
+
+   decoder3to8: This module outputs HIGH to 1 of 8 outputs based on 3 select bits.
+   
+******************************************************************************/
+module decoder3to8 (
+    input sel[3],
+    output out_0,
+    output out_1,
+    output out_2,
+    output out_3,
+    output out_4,
+    output out_5,
+    output out_6,
+    output out_7
+) {
+    always {
+        out_0 = 1b0
+        out_1 = 1b0
+        out_2 = 1b0
+        out_3 = 1b0
+        out_4 = 1b0
+        out_5 = 1b0
+        out_6 = 1b0
+        out_7 = 1b0
+        
+        case (sel) {
+            3d0: out_0 = 1b1
+            3d1: out_1 = 1b1
+            3d2: out_2 = 1b1
+            3d3: out_3 = 1b1
+            3d4: out_4 = 1b1
+            3d5: out_5 = 1b1
+            3d6: out_6 = 1b1
+            3d7: out_7 = 1b1
+        }
+    }
+}

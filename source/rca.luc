@@ -1,0 +1,27 @@
+/******************************************************************************
+
+   rca: This module adds three binary digits a, b and cin and outputs the
+   sum s and a carry-out bit cout.
+   
+******************************************************************************/
+module rca #(
+    SIZE ~ 32 : SIZE > 1
+)(
+    input a[SIZE],
+    input b[SIZE],
+    input cin,
+    output cout,
+    output s[SIZE]
+) {
+    fa adder[SIZE] (.a(a), .b(b))
+    
+    always {
+        adder.cin[0] = cin
+        repeat (i, SIZE-1, 1, 1) {
+            adder.cin[i] = adder.cout[i-1]
+        }
+        cout = adder.cout[SIZE-1]
+        s = adder.s
+        
+    }
+}

@@ -1,0 +1,78 @@
+/******************************************************************************
+
+  index_mapper: The driver streams pixel_address 0..1023 sequentially.
+  This module converts that physical chain address into the correct
+  index for a row-major 32x32 DISPLAY array.
+  
+  Physical chain order: Top-Left → Top-Right → Bottom-Right → Bottom-Left
+  Each panel: 16x16, serpentine wiring, DIN at top-left corner
+
+  Panel layout (viewed from front):
+    +--------+--------+
+    | Panel1 | Panel0 |
+    |  TL    |  TR    |
+    | 256-511| 0-255  |
+    +--------+--------+
+    | Panel2 | Panel3 |
+    |  BL    |  BR    |
+    | 512-767|768-1023|
+    +--------+--------+
+    
+*******************************************************************************/
+module index_mapper (
+    input input_addr[10],    // physical chain address 0..1023
+    output mapped_addr[10]   // logical DISPLAY index (row*32 + col)
+) {
+    
+    sig panel_id[2]
+    sig local_addr[8]
+    sig local_row[4]
+    sig local_col[4]
+    sig global_row[5]
+    sig global_col[5]
+    
+    always {
+        // Which panel? (0-3 based on groups of 256)
+        panel_id = input_addr[9:8]
+        
+        // Local address within the panel (0..255)
+        local_addr = input_addr[7:0]
+        
+        // Local row = local_addr / 16
+        local_row = local_addr[7:4]
+        
+        // Serpentine correction: odd rows run right-to-left
+        // so we flip the column index
+        if (local_row[0]) {
+            local_col = 4hF ^ local_addr[3:0]  // 15 - col
+        } else {
+            local_col = local_addr[3:0]
+        }
+        
+        // Map to global 32x32 coordinates based on panel position
+        case (panel_id) {
+            2b00:  // Panel 0: Top-Left (rows 0-15, cols 0-15)
+                global_row = c{b0, local_row}
+                global_col = c{b0, local_col}
+            
+            2b01:  // Panel 1: Top-Right (rows 0-15, cols 16-31)
+                global_row = c{b0, local_row}
+                global_col = c{b1, local_col}
+            
+            2b10:  // Panel 2: Bottom-Right (rows 16-31, cols 16-31)
+                global_row = c{b1, local_row}
+                global_col = c{b1, local_col}
+            
+            2b11:  // Panel 3: Bottom-Left (rows 16-31, cols 0-15)
+                global_row = c{b1, local_row}
+                global_col = c{b0, local_col}
+            
+            default:
+                global_row = 0
+                global_col = 0
+        }
+        
+        // Output: row * 32 + col = {row[4:0], col[4:0]}
+        mapped_addr = c{global_row, global_col}
+    }
+}

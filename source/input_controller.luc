@@ -1,0 +1,120 @@
+/******************************************************************************
+  
+  input_controller: This module receives all player and timed inputs from external
+  buttons or the game_clocks component and latches them as event flags for the control unit.
+  The control unit handles the event and sends a signal to clear the flag.
+
+*******************************************************************************/
+module input_controller (
+    input clk,  // clock
+    input rst,  // reset
+    // input buttons
+    input attack_up_button,
+    input attack_down_button,
+    input attack_left_button,
+    input attack_right_button,
+    input move_up_button,
+    input move_down_button,
+    input move_left_button,
+    input move_right_button,
+    input start_button,
+    // input control signals
+    input flag_rst_sel[3],
+    input attack_drawn,
+    input game_reset,
+    // input from datapath
+    input direction[10],
+    // input from cpu dffs
+    input difficulty_sel[2],
+    // outputs
+    output timer_flag,
+    output move_enemy_flag,
+    output spawn_enemy_flag,
+    output attack_up_flag,
+    output attack_down_flag,
+    output attack_left_flag,
+    output attack_right_flag,
+    output move_up_flag,
+    output move_down_flag,
+    output move_left,
+    output move_left_flag,
+    output move_right,
+    output move_right_flag,
+    output clear_attack_flag,
+    output start
+) {
+    // flag reset decoder
+    decoder3to8 flag_reset_decoder(.sel(flag_rst_sel))
+    direction_demux move_demux(.in(flag_reset_decoder.out_4), .direction(direction))
+    direction_demux attack_demux(.in(flag_reset_decoder.out_5), .direction(direction))
+    
+    // game clocks
+    game_clocks game_clocks(.clk(clk), .difficulty(difficulty_sel), .rst(rst | game_reset))
+    
+    .clk(clk) {
+        // button conditioners
+        #CLK_FREQ(Globals.CLOCK_FREQ) {
+            button_conditioner bc_attack_up_button    (.in(attack_up_button))
+            button_conditioner bc_attack_down_button  (.in(attack_down_button))
+            button_conditioner bc_attack_left_button  (.in(attack_left_button))
+            button_conditioner bc_attack_right_button (.in(attack_right_button))
+            button_conditioner bc_move_up_button      (.in(move_up_button))
+            button_conditioner bc_move_down_button    (.in(move_down_button))
+            button_conditioner bc_start_button        (.in(start_button))
+            button_conditioner bc_move_left_button    (.in(move_left_button))
+            button_conditioner bc_move_right_button   (.in(move_right_button))
+        }
+        
+        // edge detectors
+        #RISE(1), #FALL(0) {
+            edge_detector ed_timer               (.in(game_clocks.timer))
+            edge_detector ed_move_enemy          (.in(game_clocks.move_enemy))
+            edge_detector ed_spawn_enemy         (.in(game_clocks.spawn_enemy))
+            edge_detector ed_attack_up_button    (.in(bc_attack_up_button.out))
+            edge_detector ed_attack_down_button  (.in(bc_attack_down_button.out))
+            edge_detector ed_attack_left_button  (.in(bc_attack_left_button.out))
+            edge_detector ed_attack_right_button (.in(bc_attack_right_button.out))
+            edge_detector ed_move_up_button      (.in(bc_move_up_button.out))
+            edge_detector ed_move_down_button    (.in(bc_move_down_button.out))
+            edge_detector ed_start_button        (.in(bc_start_button.out))
+            edge_detector ed_move_left_button    (.in(bc_move_left_button.out))
+            edge_detector ed_move_right_button   (.in(bc_move_right_button.out))
+        }
+    
+        // clear_attack 
+        time_delay clear_attack_delay(.rst(rst | game_reset), .in(attack_drawn), #DIV(Globals.CLEAR_ATTACK_DELAY_DIVS))
+    
+    
+        // set reset latches
+        set_reset_latch srl_timer               (.rst(rst | game_reset | flag_reset_decoder.out_1), .in(ed_timer.out))
+        set_reset_latch srl_move_enemy_clock    (.rst(rst | game_reset | flag_reset_decoder.out_2), .in(ed_move_enemy.out))
+        set_reset_latch srl_spawn_enemy_clock   (.rst(rst | game_reset | flag_reset_decoder.out_3), .in(ed_spawn_enemy.out))
+        set_reset_latch srl_attack_up_button    (.rst(rst | game_reset | move_demux.out_0),         .in(ed_attack_up_button.out))
+        set_reset_latch srl_attack_down_button  (.rst(rst | game_reset | move_demux.out_1),         .in(ed_attack_down_button.out))
+        set_reset_latch srl_attack_left_button  (.rst(rst | game_reset | move_demux.out_2),         .in(ed_attack_left_button.out))
+        set_reset_latch srl_attack_right_button (.rst(rst | game_reset | move_demux.out_3),         .in(ed_attack_right_button.out))
+        set_reset_latch srl_move_up_button      (.rst(rst | game_reset | attack_demux.out_0),        .in(ed_move_up_button.out))
+        set_reset_latch srl_move_down_button    (.rst(rst | game_reset | attack_demux.out_1),        .in(ed_move_down_button.out))
+        set_reset_latch srl_move_left_button    (.rst(rst | game_reset | attack_demux.out_2),        .in(ed_move_left_button.out))
+        set_reset_latch srl_move_right_button   (.rst(rst | game_reset | attack_demux.out_3),        .in(ed_move_right_button.out))
+        set_reset_latch srl_clear_attack        (.rst(rst | game_reset | flag_reset_decoder.out_6), .in(clear_attack_delay.out))
+    }
+    
+    always {
+        timer_flag        = srl_timer.flag
+        move_enemy_flag   = srl_move_enemy_clock.flag
+        spawn_enemy_flag  = srl_spawn_enemy_clock.flag
+        attack_up_flag    = srl_attack_up_button.flag
+        attack_down_flag  = srl_attack_down_button.flag
+        attack_left_flag  = srl_attack_left_button.flag
+        attack_right_flag = srl_attack_right_button.flag
+        move_up_flag      = srl_move_up_button.flag
+        move_down_flag    = srl_move_down_button.flag
+        move_left         = ed_move_left_button.out 
+        move_left_flag    = srl_move_left_button.flag
+        move_right        = ed_move_right_button.out 
+        move_right_flag   = srl_move_right_button.flag
+        clear_attack_flag = srl_clear_attack.flag
+        start             = ed_start_button.out
+    }
+}

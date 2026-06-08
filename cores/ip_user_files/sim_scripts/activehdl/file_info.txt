@@ -1,0 +1,5 @@
+xpm_cdc.sv,systemverilog,xpm,../../../../../../../../../AMDstuff/2025.2/Vivado/data/ip/xpm/xpm_cdc/hdl/xpm_cdc.sv,incdir="../../../../../../../../../../../../../AMDstuff/2025.2/Vivado/data/rsb/busdef"incdir="../../../clk_wiz_various"
+xpm_VCOMP.vhd,vhdl,xpm,../../../../../../../../../AMDstuff/2025.2/Vivado/data/ip/xpm/xpm_VCOMP.vhd,incdir="../../../../../../../../../../../../../AMDstuff/2025.2/Vivado/data/rsb/busdef"incdir="../../../clk_wiz_various"
+clk_wiz_various_clk_wiz.v,verilog,xil_defaultlib,../../../clk_wiz_various/clk_wiz_various_clk_wiz.v,incdir="../../../../../../../../../../../../../AMDstuff/2025.2/Vivado/data/rsb/busdef"incdir="../../../clk_wiz_various"
+clk_wiz_various.v,verilog,xil_defaultlib,../../../clk_wiz_various/clk_wiz_various.v,incdir="../../../../../../../../../../../../../AMDstuff/2025.2/Vivado/data/rsb/busdef"incdir="../../../clk_wiz_various"
+glbl.v,Verilog,xil_defaultlib,glbl.v

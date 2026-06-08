@@ -1,0 +1,19 @@
+/******************************************************************************
+
+   bit_reverse: This module outputs the input signal with the order of bits
+   reversed. The MSB becomes the LSB and vice versa for the rest of the bits.
+   For example, 11110000 becomes 00001111.
+   
+******************************************************************************/
+module bit_reverse #(
+    SIZE = 32  : SIZE > 0
+) (
+    input in[SIZE],
+    output out[SIZE]
+) {
+    always {
+        repeat(i, SIZE){
+            out[i] = in[SIZE-1-i]
+        }
+    }
+}

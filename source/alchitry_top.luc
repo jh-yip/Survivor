@@ -1,0 +1,107 @@
+/******************************************************************************
+
+   alchitry_top: The three major components of the system: input controller,
+   control unit and datapath are instantiated here.
+   
+******************************************************************************/
+module alchitry_top (
+    input clk,              // 100MHz clock
+    input rst_n,            // reset button (active low)
+    input usb_rx,           // USB->Serial input
+    output led[8],          // 8 user controllable LEDs
+    output usb_tx,          // USB->Serial output
+    output io_led[3][8],    // LEDs on IO Shield
+    input io_dip[3][8],     // DIP switches on IO Shield
+    
+    // buttons
+    input io_button[5],     // 5 buttons on IO Shield
+    
+    // seven segs
+    output io_segment[8],   // 7-segment LEDs on IO Shield
+    output io_select[4],    // Digit select on IO Shield
+    
+    // external
+    input attack_button[4],
+    output data,
+    output io_select_2[4],
+    output io_select_3[4]
+) {
+    sig rst // reset signal
+    
+    clk_wiz_various clocks(.clk_in1(clk), .reset(~rst_n))
+    .clk(clocks.clk20) {
+        reset_conditioner reset_cond
+        input_controller input_controller(.rst(rst))
+        datapath datapath(.rst(rst))
+        control_unit control_unit(.rst(rst))
+    }
+    
+    always {
+        reset_cond.in = ~rst_n | ~clocks.locked  // input raw inverted reset signal
+        rst = reset_cond.out    // conditioned reset
+        led = 8b0 // connect buttons to LEDs
+        io_led = 3x{{8b0}}
+        usb_tx = usb_rx         // loop serial port
+        
+        // debug
+        led = control_unit.state_led
+        
+        // input controller
+        input_controller.start_button       = io_button[1]
+        input_controller.move_up_button     = io_button[0]
+        input_controller.move_down_button   = io_button[2]
+        input_controller.move_left_button   = io_button[3]
+        input_controller.move_right_button  = io_button[4]
+        input_controller.attack_up_button    = attack_button[0]
+        input_controller.attack_down_button  = attack_button[1]
+        input_controller.attack_left_button  = attack_button[3]
+        input_controller.attack_right_button = attack_button[2]
+        input_controller.direction          = datapath.direction
+        input_controller.difficulty_sel     = control_unit.difficulty_sel
+        input_controller.flag_rst_sel       = control_unit.flag_rst_sel
+        input_controller.attack_drawn        = control_unit.attack_drawn
+        input_controller.game_reset         = control_unit.game_reset
+        
+        // control unit
+        control_unit.timer_flag       = input_controller.timer_flag
+        control_unit.move_enemy_flag  = input_controller.move_enemy_flag
+        control_unit.spawn_enemy_flag = input_controller.spawn_enemy_flag
+        control_unit.attack_up_flag    = input_controller.attack_up_flag
+        control_unit.attack_down_flag  = input_controller.attack_down_flag
+        control_unit.attack_left_flag  = input_controller.attack_left_flag
+        control_unit.attack_right_flag = input_controller.attack_right_flag
+        control_unit.move_up_flag     = input_controller.move_up_flag
+        control_unit.move_down_flag   = input_controller.move_down_flag
+        control_unit.move_left_flag   = input_controller.move_left_flag
+        control_unit.move_right_flag  = input_controller.move_right_flag
+        control_unit.clear_attack_flag = input_controller.clear_attack_flag
+        control_unit.start            = input_controller.start
+        control_unit.move_left        = input_controller.move_left
+        control_unit.move_right       = input_controller.move_right
+        control_unit.bool             = datapath.bool
+        control_unit.driver_done      = datapath.driver_done
+        
+        // datapath
+        datapath.ra1            = control_unit.ra1
+        datapath.ra2            = control_unit.ra2
+        datapath.asel           = control_unit.asel
+        datapath.bsel           = control_unit.bsel
+        datapath.alufn          = control_unit.alufn
+        datapath.ram_we         = control_unit.ram_we
+        datapath.ram_wdsel      = control_unit.ram_wdsel
+        datapath.mrd_sel        = control_unit.mrd_sel
+        datapath.update_display = control_unit.update_display
+        datapath.reg_we         = control_unit.reg_we
+        datapath.reg_wa         = control_unit.reg_wa
+        datapath.game_reset     = control_unit.game_reset
+        datapath.screen_sel     = control_unit.screen_sel
+        datapath.weapon_sel     = control_unit.weapon_sel
+        
+        // outputs
+        data        = datapath.data         // to ws2812b led
+        io_select   = datapath.select[11:8] // to seven seg 1 (time)
+        io_select_2 = datapath.select[7:4]  // to seven seg 2 (ammo)
+        io_select_3 = datapath.select[3:0]  // to seven seg 3 (points)
+        io_segment  = datapath.segs         // to all seven segs
+    }
+}

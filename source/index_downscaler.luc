@@ -1,0 +1,23 @@
+/******************************************************************************
+
+   index_downscaler: This module maps an index on a 2n x 2n board to a
+   corresponding address on a n x n board.
+   
+   e.g.
+   0   1  2  3                        0  0  1  1
+   4   5  6  7         MAPS TO        0  0  1  1
+   8   9 10 11                        2  2  3  3
+   12 13 14 15                        2  2  3  3
+   
+******************************************************************************/
+module index_downscaler#(
+    DIMENSION = 32 : DIMENSION > 1,
+    SIZE = 10 : SIZE > 2 // width of input and output ports. 8 bits for 2^10 = 1024 pixels
+) (
+    input input_addr[SIZE],
+    output downscaled_addr[SIZE-2]
+) {
+    always {
+        downscaled_addr = ((input_addr >> ($clog2(DIMENSION)+1)) << 4) | ((input_addr & (DIMENSION-1)) >> 1)
+    }
+}

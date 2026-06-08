@@ -1,0 +1,96 @@
+PINOUT(V1), STANDARD(LVCMOS33) {
+    pin io_led[0][0] C2
+    pin io_led[0][1] C3
+    pin io_led[0][2] B18
+    pin io_led[0][3] B17
+    pin io_led[0][4] B15
+    pin io_led[0][5] B14
+    pin io_led[0][6] B12
+    pin io_led[0][7] B11
+    pin io_led[1][0] B9
+    pin io_led[1][1] B8
+    pin io_led[1][2] B6
+    pin io_led[1][3] B5
+    pin io_led[1][4] B3
+    pin io_led[1][5] B2
+    pin io_led[1][6] A24
+    pin io_led[1][7] A23
+    pin io_led[2][0] A21
+    pin io_led[2][1] A20
+    pin io_led[2][2] A18
+    pin io_led[2][3] A17
+    pin io_led[2][4] C18
+    pin io_led[2][5] C20
+    pin io_led[2][6] C5
+    pin io_led[2][7] C6
+
+    PULL(DOWN) {
+        pin io_dip[0][0] C11
+        pin io_dip[0][1] C12
+        pin io_dip[0][2] C14
+        pin io_dip[0][3] B34
+        pin io_dip[0][4] B36
+        pin io_dip[0][5] B37
+        pin io_dip[0][6] B39
+        pin io_dip[0][7] B40
+        pin io_dip[1][0] B42
+        pin io_dip[1][1] B43
+        pin io_dip[1][2] B45
+        pin io_dip[1][3] B46
+        pin io_dip[1][4] B48
+        pin io_dip[1][5] B49
+        pin io_dip[1][6] A27
+        pin io_dip[1][7] A28
+        pin io_dip[2][0] A30
+        pin io_dip[2][1] A31
+        pin io_dip[2][2] A33
+        pin io_dip[2][3] A34
+        pin io_dip[2][4] C8
+        pin io_dip[2][5] C9
+        pin io_dip[2][6] C15
+        pin io_dip[2][7] C17
+
+        // move
+        pin io_button[0] B23    // Up
+        pin io_button[1] B33    // Start
+        pin io_button[2] B27    // Down
+        pin io_button[3] B24    // Left
+        pin io_button[4] B28    // Right
+        
+        // shoot
+        pin attack_button[0] B20    // Up
+        pin attack_button[1] B21    // Down
+        pin attack_button[2] B30    // Right
+        pin attack_button[3] B31    // Left
+    }
+    
+    // time
+    pin io_select[0] A8
+    pin io_select[1] A9
+    pin io_select[2] A42
+    pin io_select[3] A43
+    
+    // ammo
+    pin io_select_2[0] A11
+    pin io_select_2[1] A12
+    pin io_select_2[2] A40
+    pin io_select_2[3] A39
+    
+    // points
+    pin io_select_3[0] A14
+    pin io_select_3[1] A15
+    pin io_select_3[2] A37
+    pin io_select_3[3] A36
+    
+    // shared
+    pin io_segment[0] A5
+    pin io_segment[1] A6
+    pin io_segment[2] A48
+    pin io_segment[3] A46
+    pin io_segment[4] A45
+    pin io_segment[5] A3
+    pin io_segment[6] A2
+    pin io_segment[7] A49
+    
+    pin data C40
+}

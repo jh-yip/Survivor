@@ -1,0 +1,18 @@
+module ram (
+    input clk,  // clock
+    input addr[32],
+    output mrd[24],
+    input we,
+    input wd[24]
+) {
+    simple_ram memory(.clk(clk), #WIDTH(24), #ENTRIES(512))
+    
+    always {
+        // in
+        memory.address = addr[8:0] // 512 slots
+        memory.write_data = wd
+        memory.write_enable = we
+        // out
+        mrd = memory.read_data
+    }
+}

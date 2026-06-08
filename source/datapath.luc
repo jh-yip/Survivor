@@ -1,0 +1,204 @@
+module datapath (
+    input clk,  // clock
+    input rst,  // reset
+    
+    // inputs (control signals)
+    input ra1[3],
+    input ra2[3],
+    input asel[4],
+    input bsel[4],
+    input alufn[6],
+    
+    input ram_we,
+    input ram_wdsel[3],
+    
+    input mrd_sel,
+    input screen_sel[4],
+    input update_display,
+    
+    input reg_we,
+    input reg_wa[3],
+    
+    input game_reset,
+    
+    // inputs (cpu dff)
+    input weapon_sel[2],
+    
+    // outputs (to control unit)
+    output bool,
+    output driver_done,
+    
+    // outputs (to input controller)
+    output direction[10],
+    
+    // outputs (to 7seg and ws2812b led)
+    output select[12],
+    output segs[7],
+    output data
+) {
+    // regfile unit
+    regfile_unit regfile_unit(.clk(clk))
+    edge_detector regfile_ed_rise(.clk(clk), #RISE(1), #FALL(0))
+    
+    // alu 
+    mux16to1 asel_mux[24]
+    mux16to1 bsel_mux[24]
+    alu alu
+    
+    // ram/rom
+    ram ram(.clk(clk))
+    mux8to1 ram_wdsel_mux[24]
+    rom rom
+    dff rom_dff[24](.clk(clk), .rst(rst))
+    mux2to1 mrd_sel_mux[24]
+    
+    // external drivers
+    ws2812b_driver ws2812b_driver(.clk(clk), .rst(rst))
+    seven_seg_444_driver seven_seg_444_driver(.clk(clk), .rst(rst))
+    
+    // other
+    coordinate_generator coordinate_generator(.clk(clk))
+    shape_rom shape_rom
+    mux4to1 attack_color_mux[24]
+    mux16to1 player_color_mux[24]
+    
+    always {        
+        // regfile unit
+        regfile_unit.ra1 = ra1
+        regfile_unit.ra2 = ra2
+        regfile_unit.we = reg_we
+        regfile_unit.wa = reg_wa
+        regfile_unit.wd = alu.out
+        regfile_ed_rise.in = game_reset
+        regfile_unit.rst = (rst | regfile_ed_rise.out)
+        
+        // asel mux
+        asel_mux.in_0 = regfile_unit.rd1
+        asel_mux.in_1 = 24h0
+        asel_mux.in_2 = Globals.MAX_AMMO
+        asel_mux.in_3 = coordinate_generator.random_edge_coords
+        asel_mux.in_4 = coordinate_generator.random_ammo_coords
+        asel_mux.in_5 = ws2812b_driver.requested_addr
+        asel_mux.in_6 = Globals.UP
+        asel_mux.in_7 = Globals.DOWN
+        asel_mux.in_8 = Globals.LEFT
+        asel_mux.in_9 = Globals.RIGHT
+        asel_mux.in_10 = mrd_sel_mux.out
+        asel_mux.in_11 = 24hx // unused
+        asel_mux.in_12 = 24hx // unused
+        asel_mux.in_13 = 24hx // unused
+        asel_mux.in_14 = 24hx // unused
+        asel_mux.in_15 = 24hx // unused
+        asel_mux.s3 = 24x{asel[3]}
+        asel_mux.s2 = 24x{asel[2]}
+        asel_mux.s1 = 24x{asel[1]}
+        asel_mux.s0 = 24x{asel[0]}
+        
+        // bsel mux
+        bsel_mux.in_0 = regfile_unit.rd2
+        bsel_mux.in_1 = 24h00000001 // 1
+        bsel_mux.in_2 = Globals.AMMO_PER_PICKUP
+        bsel_mux.in_3 = Globals.ENEMY_COLOR
+        bsel_mux.in_4 = attack_color_mux.out // attack_color
+        bsel_mux.in_5 = 10b1111111111 // OOB
+        bsel_mux.in_6 = 24h00000100 // 256
+        bsel_mux.in_7 = 24h00000200 // 512
+        bsel_mux.in_8 = screen_sel << 10 // rom_offset
+        bsel_mux.in_9 = shape_rom.shape_offset
+        bsel_mux.in_10 = 24bx // unused
+        bsel_mux.in_11 = 24bx // unused
+        bsel_mux.in_12 = 24bx // unused
+        bsel_mux.in_13 = 24bx // unused
+        bsel_mux.in_14 = 24bx // unused
+        bsel_mux.in_15 = 24bx // unused
+        bsel_mux.s3 = 24x{bsel[3]}
+        bsel_mux.s2 = 24x{bsel[2]}
+        bsel_mux.s1 = 24x{bsel[1]}
+        bsel_mux.s0 = 24x{bsel[0]}
+        
+        // shape rom
+        shape_rom.direction = regfile_unit.r7[9:0]
+        shape_rom.addr = regfile_unit.r5
+        shape_rom.weapon = weapon_sel
+        
+        // attack color mux
+        attack_color_mux.in_0 = Globals.LASER_COLOR
+        attack_color_mux.in_1 = Globals.BLAST_COLOR
+        attack_color_mux.in_2 = Globals.SLASH_COLOR
+        attack_color_mux.in_3 = 24bx // unused
+        attack_color_mux.s1 = 24x{weapon_sel[1]}
+        attack_color_mux.s0 = 24x{weapon_sel[0]}
+        
+        // player color mux
+        player_color_mux.in_0 = Globals.PLAYER_COLOR_0_AMMO
+        player_color_mux.in_1 = Globals.PLAYER_COLOR_1_AMMO
+        player_color_mux.in_2 = Globals.PLAYER_COLOR_2_AMMO
+        player_color_mux.in_3 = Globals.PLAYER_COLOR_3_AMMO
+        player_color_mux.in_4 = Globals.PLAYER_COLOR_4_AMMO
+        player_color_mux.in_5 = Globals.PLAYER_COLOR_5_AMMO
+        player_color_mux.in_6 = Globals.PLAYER_COLOR_6_AMMO
+        player_color_mux.in_7 = Globals.PLAYER_COLOR_7_AMMO
+        player_color_mux.in_8 = Globals.PLAYER_COLOR_8_AMMO
+        player_color_mux.in_9 = Globals.PLAYER_COLOR_9_AMMO
+        player_color_mux.in_10 = Globals.PLAYER_COLOR_10_AMMO
+        player_color_mux.in_11 = Globals.PLAYER_COLOR_11_AMMO
+        player_color_mux.in_12 = Globals.PLAYER_COLOR_12_AMMO
+        player_color_mux.in_13 = 24bx // unused
+        player_color_mux.in_14 = 24bx // unused
+        player_color_mux.in_15 = 24bx // unused
+        player_color_mux.s3 = 24x{regfile_unit.r3[3]}
+        player_color_mux.s2 = 24x{regfile_unit.r3[2]}
+        player_color_mux.s1 = 24x{regfile_unit.r3[1]}
+        player_color_mux.s0 = 24x{regfile_unit.r3[0]}
+        
+        // alu
+        alu.a = asel_mux.out
+        alu.b = bsel_mux.out
+        alu.alufn = alufn
+        
+        // ram
+        ram.we = ram_we
+        ram.addr = alu.out
+        ram.wd = ram_wdsel_mux.out
+        
+        // ram wdsel mux
+        ram_wdsel_mux.in_0 = Globals.BG_COLOR
+        ram_wdsel_mux.in_1 = player_color_mux.out
+        ram_wdsel_mux.in_2 = Globals.AMMO_COLOR
+        ram_wdsel_mux.in_3 = Globals.ENEMY_COLOR
+        ram_wdsel_mux.in_4 = attack_color_mux.out // attack_color
+        ram_wdsel_mux.in_5 = 24hx // unused
+        ram_wdsel_mux.in_6 = 24hx // unused
+        ram_wdsel_mux.in_7 = 24hx // unused
+        ram_wdsel_mux.s2 = 24x{ram_wdsel[2]}
+        ram_wdsel_mux.s1 = 24x{ram_wdsel[1]}
+        ram_wdsel_mux.s0 = 24x{ram_wdsel[0]}
+        
+        // rom + dff
+        rom.addr = alu.out
+        rom_dff.d = rom.mrd
+        
+        // mrd sel mux
+        mrd_sel_mux.in_0 = rom_dff.q
+        mrd_sel_mux.in_1 = ram.mrd
+        mrd_sel_mux.s = 24x{mrd_sel}
+        
+        // ws2812b driver
+        ws2812b_driver.downscale = mrd_sel
+        ws2812b_driver.update_display = update_display
+        ws2812b_driver.color = mrd_sel_mux.out[23:0]
+        
+        // seven seg driver
+        seven_seg_444_driver.data0 = regfile_unit.r2
+        seven_seg_444_driver.data1 = regfile_unit.r3
+        seven_seg_444_driver.data2 = regfile_unit.r4
+        
+        // outputs
+        segs = seven_seg_444_driver.segments
+        select = seven_seg_444_driver.select
+        data = ws2812b_driver.data
+        driver_done = ws2812b_driver.driver_done
+        bool = alu.out[0]
+        direction = regfile_unit.r7[9:0]
+    }
+}

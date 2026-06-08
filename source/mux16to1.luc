@@ -1,0 +1,50 @@
+/******************************************************************************
+
+   mux16to1: This module outputs 1 of 16 input signals based on 4 select bits.
+   
+******************************************************************************/
+module mux16to1 (
+    input in_0, 
+    input in_1, 
+    input in_2, 
+    input in_3,
+    input in_4, 
+    input in_5, 
+    input in_6, 
+    input in_7,
+    input in_8, 
+    input in_9, 
+    input in_10, 
+    input in_11,
+    input in_12, 
+    input in_13, 
+    input in_14, 
+    input in_15,
+    input s0,
+    input s1,
+    input s2,
+    input s3,
+    output out
+) {
+    always {
+        case (c{s3, s2, s1, s0}) {
+            4d0: out = in_0
+            4d1: out = in_1
+            4d2: out = in_2
+            4d3: out = in_3
+            4d4: out = in_4
+            4d5: out = in_5
+            4d6: out = in_6
+            4d7: out = in_7
+            4d8: out = in_8
+            4d9: out = in_9
+            4d10: out = in_10
+            4d11: out = in_11
+            4d12: out = in_12
+            4d13: out = in_13
+            4d14: out = in_14
+            4d15: out = in_15
+            default: out = 1bx
+        }
+    }
+}

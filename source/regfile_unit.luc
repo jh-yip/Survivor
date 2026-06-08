@@ -1,0 +1,95 @@
+/******************************************************************************
+
+   regfile_unit: Contains 8 10-bit registers (addressessable with 3 bits),
+   2 combinational read ports and
+   1 sequential write port.
+   
+******************************************************************************/
+module regfile_unit #(
+    WIDTH = 10 : WIDTH >= 10
+)(
+    input clk,  // clock
+    input rst, // reset
+    input ra1[3],
+    input ra2[3],
+    output rd1[WIDTH],
+    output rd2[WIDTH],
+    input wa[3],
+    input wd[WIDTH],
+    input we,
+    
+    output r2[WIDTH],
+    output r3[WIDTH],
+    output r4[WIDTH],
+    output r5[WIDTH],
+    output r7[WIDTH]
+) {
+    .clk(clk), .rst(rst) {
+        dff player_coords[WIDTH] (#INIT(Globals.STARTING_COORDS))
+        dff ammo_coords[WIDTH]   (#INIT(0))
+        dff time[WIDTH]          (#INIT(Globals.TIME_TO_WIN))
+        dff current_ammo[WIDTH]  (#INIT(Globals.MAX_AMMO))
+        dff points[WIDTH]        (#INIT(0))
+        dff address[WIDTH]       (#INIT(0))
+        dff coordinate[WIDTH]    (#INIT(0))
+        dff direction[WIDTH]     (#INIT(0))
+    }
+    
+    always {
+        // loop
+        player_coords.d = player_coords.q
+        ammo_coords.d = ammo_coords.q
+        time.d = time.q
+        current_ammo.d = current_ammo.q
+        points.d = points.q
+        address.d = address.q
+        coordinate.d = coordinate.q
+        direction.d = direction.q
+        
+        // implement two output read ports
+        case (ra1) {
+            4d0: rd1 = player_coords.q
+            4d1: rd1 = ammo_coords.q
+            4d2: rd1 = time.q
+            4d3: rd1 = current_ammo.q
+            4d4: rd1 = points.q
+            4d5: rd1 = address.q
+            4d6: rd1 = coordinate.q
+            4d7: rd1 = direction.q
+            default: rd1 = WIDTHx{1bx}
+        }
+        
+        case (ra2) {
+            4d0: rd2 = player_coords.q
+            4d1: rd2 = ammo_coords.q
+            4d2: rd2 = time.q
+            4d3: rd2 = current_ammo.q
+            4d4: rd2 = points.q
+            4d5: rd2 = address.q
+            4d6: rd2 = coordinate.q
+            4d7: rd2 = direction.q
+            default: rd2 = WIDTHx{1bx}
+        }
+        
+        // implement one write port 
+        if (we) {
+            case (wa) {
+                4d0: player_coords.d = wd
+                4d1: ammo_coords.d = wd
+                4d2: time.d = wd
+                4d3: current_ammo.d = wd
+                4d4: points.d = wd
+                4d5: address.d = wd
+                4d6: coordinate.d = wd
+                4d7: direction.d = wd
+            }
+        }
+        
+        // outputs
+        r2 = time.q
+        r3 = current_ammo.q
+        r4 = points.q
+        r5 = address.q
+        r7 = direction.q
+    }
+}

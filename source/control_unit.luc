@@ -1,0 +1,475 @@
+/******************************************************************************
+
+   control_unit: This module will perform signed addition or subtraction on two inputs
+   and output the result along with zero, signed overflow and negative bits.
+   
+******************************************************************************/
+module control_unit (
+    input clk,  // clock
+    input rst,  // reset
+    
+    // from input controller
+    input timer_flag,
+    input move_enemy_flag,
+    input spawn_enemy_flag,
+    input attack_up_flag,
+    input attack_down_flag,
+    input attack_left_flag,
+    input attack_right_flag,
+    input move_up_flag,
+    input move_down_flag,
+    input move_left,
+    input move_left_flag,
+    input move_right,
+    input move_right_flag,
+    input clear_attack_flag,
+    input start,
+    
+    // from datapath
+    input bool,
+    input driver_done,
+    
+    // outputs (control signal)
+    output ra1[3],
+    output ra2[3],
+    output asel[4],
+    output bsel[4],
+    output alufn[6],
+    
+    output ram_we,
+    output ram_wdsel[3],
+    
+    output mrd_sel,
+    output screen_sel[4],
+    output update_display,
+    
+    output reg_we,
+    output reg_wa[3],
+    
+    output flag_rst_sel[3],
+    output attack_drawn,
+    output game_reset,
+    
+    // outputs (dff)
+    output weapon_sel[2],
+    output difficulty_sel[2],
+        
+    // debug
+    output state_led[8]
+) {
+    enum States {
+        // START
+        START_0,
+        START_1,
+        START_2,
+
+        // GAME OVER
+        GAME_OVER_0,
+        GAME_OVER_1,
+        GAME_OVER_2,
+
+        // WIN
+        WIN_0,
+        WIN_1,
+        WIN_2,
+        
+        // DIFFICULT SELECT
+        DIFFICULTY_SELECT,
+
+        // EASY
+        EASY_0,
+        EASY_1,
+        EASY_2,
+
+        // MEDIUM
+        MEDIUM_0,
+        MEDIUM_1,
+        MEDIUM_2,
+
+        // HARD
+        HARD_0,
+        HARD_1,
+        HARD_2,
+
+        // WEAPON SELECT
+        WEAPON_SELECT,
+
+        // LASER
+        LASER_0,
+        LASER_1,
+        LASER_2,
+        
+        // BLAST
+        BLAST_0,
+        BLAST_1,
+        BLAST_2,
+
+        // SLASH
+        SLASH_0,
+        SLASH_1,
+        SLASH_2,
+        
+        // SETUP
+        SETUP_0,
+        SETUP_1,
+        SETUP_2,
+        SETUP_3,
+        SETUP_4,
+        SETUP_5,
+        SETUP_6,
+        
+        // REFRESH
+        REFRESH_0, 
+        REFRESH_1, 
+        
+        // GAME LOOP
+        GAME_LOOP,
+        
+        // SET_ATTACK
+        SET_ATTACK_U, 
+        SET_ATTACK_D, 
+        SET_ATTACK_L, 
+        SET_ATTACK_R, 
+        
+        // SET_MOVE
+        SET_MOVE_U, 
+        SET_MOVE_D, 
+        SET_MOVE_L, 
+        SET_MOVE_R, 
+        
+        // DECR_TIME
+        DECR_TIME_0, 
+        DECR_TIME_1, 
+        DECR_TIME_2, 
+        
+        // MOVE_NPC
+        MOVE_NPC_0,
+        MOVE_NPC_1,
+        MOVE_NPC_2,
+        MOVE_NPC_3,
+        MOVE_NPC_4,
+        MOVE_NPC_5,
+        MOVE_NPC_6,
+        MOVE_NPC_7,
+        MOVE_NPC_8,
+        MOVE_NPC_9,
+        MOVE_NPC_10,
+        MOVE_NPC_11,
+        MOVE_NPC_12,
+        MOVE_NPC_13,
+        MOVE_NPC_14,
+        MOVE_NPC_15,
+        MOVE_NPC_16,
+        MOVE_NPC_17,
+        
+        // SPAWN NPC
+        SPAWN_NPC_0,
+        SPAWN_NPC_1,
+        SPAWN_NPC_2,
+        SPAWN_NPC_3,
+        SPAWN_NPC_4,
+        
+        // ATTACK
+        ATTACK_0,
+        ATTACK_1,
+        ATTACK_2,
+        ATTACK_3,
+        ATTACK_4,
+        ATTACK_5,
+        ATTACK_6,
+        ATTACK_7,
+        ATTACK_8,
+        ATTACK_9,
+        ATTACK_10,
+        ATTACK_11,
+        ATTACK_12,
+        ATTACK_13,
+        ATTACK_14,
+        
+        // MOVE_PLR
+        MOVE_PLR_0,
+        MOVE_PLR_1,
+        MOVE_PLR_2,
+        MOVE_PLR_3,
+        MOVE_PLR_4,
+        MOVE_PLR_5,
+        MOVE_PLR_6,
+        MOVE_PLR_7,
+        
+        // GET_AMMO
+        GET_AMMO_0,
+        GET_AMMO_1,
+        GET_AMMO_2,
+        GET_AMMO_3,
+        GET_AMMO_4,
+        GET_AMMO_5,
+        GET_AMMO_6,
+        GET_AMMO_7,
+        GET_AMMO_8,
+        GET_AMMO_9,
+        
+        // CLR_ATTACK
+        CLR_ATTACK_0, 
+        CLR_ATTACK_1, 
+        CLR_ATTACK_2, 
+        CLR_ATTACK_3, 
+        CLR_ATTACK_4, 
+        CLR_ATTACK_5, 
+        CLR_ATTACK_6
+    }
+    
+    // dffs
+    .clk(clk), .rst(rst) {
+        dff state[8] (#INIT(States.START_0))
+        dff difficulty[2] (#INIT(Globals.EASY))
+        dff weapon[2] (#INIT(Globals.LASER))
+    }
+    
+    control_signals_rom control_signals_rom(.state(state.q))
+    
+    always {
+        // debug
+        state_led = state.q
+        
+        // dff loop
+        difficulty.d = difficulty.q
+        weapon.d = weapon.q
+        
+        // dff outputs
+        difficulty_sel = difficulty.q
+        weapon_sel = weapon.q
+        
+        // control signals
+        ra1 = control_signals_rom.out[38:36]
+        ra2 = control_signals_rom.out[35:33]
+        asel = control_signals_rom.out[32:29]
+        bsel = control_signals_rom.out[28:25]
+        alufn = control_signals_rom.out[24:19]
+        ram_we = control_signals_rom.out[18]
+        ram_wdsel = control_signals_rom.out[17:15]
+        mrd_sel = control_signals_rom.out[14]
+        screen_sel = control_signals_rom.out[13:10]
+        update_display = control_signals_rom.out[9]
+        reg_we = control_signals_rom.out[8]
+        reg_wa = control_signals_rom.out[7:5]
+        flag_rst_sel = control_signals_rom.out[4:2]
+        attack_drawn = control_signals_rom.out[1]
+        game_reset = control_signals_rom.out[0]
+        
+        // next state
+        case (state.q) {
+            // START
+            States.START_0: state.d = States.START_1
+            States.START_1: state.d = (driver_done) ? States.START_2: States.START_1
+            States.START_2: state.d = (start) ? States.DIFFICULTY_SELECT : States.START_2
+
+            // GAME OVER
+            States.GAME_OVER_0: state.d = States.GAME_OVER_1
+            States.GAME_OVER_1: state.d = (driver_done) ? States.GAME_OVER_2: States.GAME_OVER_1
+            States.GAME_OVER_2: state.d = (start) ? States.START_0 : States.GAME_OVER_2
+
+            // WIN
+            States.WIN_0: state.d = States.WIN_1
+            States.WIN_1: state.d = (driver_done) ? States.WIN_2 : States.WIN_1
+            States.WIN_2: state.d = (start) ? States.START_0 : States.WIN_2
+
+            // DIFFICULTY SELECT
+            States.DIFFICULTY_SELECT:
+                case (difficulty.q) {
+                    Globals.EASY: state.d = States.EASY_0
+                    Globals.MEDIUM: state.d = States.MEDIUM_0
+                    Globals.HARD: state.d = States.HARD_0
+                    default: state.d = States.DIFFICULTY_SELECT
+                }
+
+            // EASY
+            States.EASY_0: state.d = States.EASY_1; difficulty.d = Globals.EASY
+            States.EASY_1: state.d = (driver_done) ? States.EASY_2 : States.EASY_1
+            States.EASY_2:
+                if (start) {state.d = States.WEAPON_SELECT;}
+                else if (move_left) {state.d = States.HARD_0;}
+                else if (move_right) {state.d = States.MEDIUM_0;}
+                else {state.d = States.EASY_2;}
+
+            // MEDIUM
+            States.MEDIUM_0: state.d = States.MEDIUM_1; difficulty.d = Globals.MEDIUM
+            States.MEDIUM_1: state.d = (driver_done) ? States.MEDIUM_2 : States.MEDIUM_1
+            States.MEDIUM_2:
+                if (start) {state.d = States.WEAPON_SELECT;}
+                else if (move_left) {state.d = States.EASY_0;}
+                else if (move_right) {state.d = States.HARD_0;}
+                else {state.d = States.MEDIUM_2;}
+
+            // HARD
+            States.HARD_0: state.d = States.HARD_1; difficulty.d = Globals.HARD
+            States.HARD_1: state.d = (driver_done) ? States.HARD_2 : States.HARD_1
+            States.HARD_2:
+                if (start) {state.d = States.WEAPON_SELECT;}
+                else if (move_left) {state.d = States.MEDIUM_0;}
+                else if (move_right) {state.d = States.EASY_0;}
+                else {state.d = States.HARD_2;}
+
+            // WEAPON SELECT
+            States.WEAPON_SELECT:
+                case (weapon.q) {
+                    Globals.LASER: state.d = States.LASER_0
+                    Globals.BLAST: state.d = States.BLAST_0
+                    Globals.SLASH: state.d = States.SLASH_0
+                    default: state.d = States.WEAPON_SELECT
+                }
+
+            // LASER
+            States.LASER_0: state.d = States.LASER_1; weapon.d = Globals.LASER
+            States.LASER_1: state.d = (driver_done) ? States.LASER_2 : States.LASER_1;
+            States.LASER_2:
+                if (start) {state.d = States.SETUP_0;}
+                else if (move_left) {state.d = States.SLASH_0;}
+                else if (move_right) {state.d = States.BLAST_0;}
+                else {state.d = States.LASER_2;}
+
+            // BLAST
+            States.BLAST_0: state.d = States.BLAST_1; weapon.d = Globals.BLAST
+            States.BLAST_1: state.d = (driver_done) ? States.BLAST_2 : States.BLAST_1;
+            States.BLAST_2:
+                if (start) {state.d = States.SETUP_0;}
+                else if (move_left) {state.d = States.LASER_0;}
+                else if (move_right) {state.d = States.SLASH_0;}
+                else {state.d = States.BLAST_2;}
+
+            // SLASH
+            States.SLASH_0: state.d = States.SLASH_1; weapon.d = Globals.SLASH
+            States.SLASH_1: state.d = (driver_done) ? States.SLASH_2 : States.SLASH_1;
+            States.SLASH_2:
+                if (start) {state.d = States.SETUP_0;}
+                else if (move_left) {state.d = States.BLAST_0;}
+                else if (move_right) {state.d = States.LASER_0;}
+                else {state.d = States.SLASH_2;}
+                
+            // SETUP
+            States.SETUP_0: state.d = States.SETUP_1
+            States.SETUP_1: state.d = States.SETUP_2
+            States.SETUP_2: state.d = (bool) ? States.SETUP_0 : States.SETUP_3
+            States.SETUP_3: state.d = States.SETUP_4
+            States.SETUP_4: state.d = (bool) ? States.SETUP_3 : States.SETUP_5
+            States.SETUP_5: state.d = States.SETUP_6
+            States.SETUP_6: state.d = States.REFRESH_0
+                
+            // REFRESH
+            States.REFRESH_0: state.d = States.REFRESH_1
+            States.REFRESH_1: state.d = (driver_done) ? States.GAME_LOOP : States.REFRESH_1
+                
+            States.GAME_LOOP:
+                if (timer_flag) {state.d = States.DECR_TIME_0;}
+                else if (move_enemy_flag) {state.d = States.MOVE_NPC_0;}
+                else if (spawn_enemy_flag) {state.d = States.SPAWN_NPC_0;}
+                else if (attack_up_flag) {state.d = States.SET_ATTACK_U;}
+                else if (attack_down_flag) {state.d = States.SET_ATTACK_D;}
+                else if (attack_left_flag) {state.d = States.SET_ATTACK_L;}
+                else if (attack_right_flag) {state.d = States.SET_ATTACK_R;}
+                else if (move_up_flag) {state.d = States.SET_MOVE_U;}
+                else if (move_down_flag) {state.d = States.SET_MOVE_D;}
+                else if (move_left_flag) {state.d = States.SET_MOVE_L;}
+                else if (move_right_flag) {state.d = States.SET_MOVE_R;}
+                else if (clear_attack_flag) {state.d = States.CLR_ATTACK_0;}
+                else {state.d = States.GAME_LOOP;}
+                
+            // SET ATTACK DIRECTION
+            States.SET_ATTACK_U: state.d = States.ATTACK_0
+            States.SET_ATTACK_D: state.d = States.ATTACK_0
+            States.SET_ATTACK_L: state.d = States.ATTACK_0
+            States.SET_ATTACK_R: state.d = States.ATTACK_0
+                
+            // SET MOVE DIRECTION
+            States.SET_MOVE_U: state.d = States.MOVE_PLR_0
+            States.SET_MOVE_D: state.d = States.MOVE_PLR_0
+            States.SET_MOVE_L: state.d = States.MOVE_PLR_0
+            States.SET_MOVE_R: state.d = States.MOVE_PLR_0
+                
+            // DECREASE TIME
+            States.DECR_TIME_0: state.d = States.DECR_TIME_1
+            States.DECR_TIME_1: state.d = (bool) ? States.WIN_0 : States.DECR_TIME_2
+            States.DECR_TIME_2: state.d = States.GAME_LOOP
+                
+            // MOVE ENEMIES
+            States.MOVE_NPC_0: state.d = States.MOVE_NPC_1
+            States.MOVE_NPC_1: state.d = States.MOVE_NPC_2
+            States.MOVE_NPC_2: state.d = (bool) ? States.MOVE_NPC_3 : States.MOVE_NPC_7
+            States.MOVE_NPC_3: state.d = States.MOVE_NPC_4
+            States.MOVE_NPC_4: state.d = (bool) ? States.GAME_OVER_0 : States.MOVE_NPC_5
+            States.MOVE_NPC_5: state.d = States.MOVE_NPC_6
+            States.MOVE_NPC_6: state.d = States.MOVE_NPC_7
+            States.MOVE_NPC_7: state.d = States.MOVE_NPC_8
+            States.MOVE_NPC_8: state.d = (bool) ? States.MOVE_NPC_1 : States.MOVE_NPC_9
+            States.MOVE_NPC_9: state.d = States.MOVE_NPC_10
+            States.MOVE_NPC_10: state.d = States.MOVE_NPC_11
+            States.MOVE_NPC_11: state.d = States.MOVE_NPC_12
+            States.MOVE_NPC_12: state.d = (bool) ? States.MOVE_NPC_13 : States.MOVE_NPC_15
+            States.MOVE_NPC_13: state.d = States.MOVE_NPC_14
+            States.MOVE_NPC_14: state.d = States.MOVE_NPC_15
+            States.MOVE_NPC_15: state.d = States.MOVE_NPC_16
+            States.MOVE_NPC_16: state.d = (bool) ? States.MOVE_NPC_11 : States.MOVE_NPC_17
+            States.MOVE_NPC_17: state.d = States.REFRESH_0
+                
+            // SPAWN ENEMY
+            States.SPAWN_NPC_0: state.d = States.SPAWN_NPC_1
+            States.SPAWN_NPC_1: state.d = (bool) ? States.SPAWN_NPC_0 : States.SPAWN_NPC_2
+            States.SPAWN_NPC_2: state.d = States.SPAWN_NPC_3
+            States.SPAWN_NPC_3: state.d = (bool) ? States.SPAWN_NPC_0 : States.SPAWN_NPC_4
+            States.SPAWN_NPC_4: state.d = States.REFRESH_0
+                
+            // ATTACK
+            States.ATTACK_0: state.d = (bool) ? States.ATTACK_13 : States.ATTACK_1
+            States.ATTACK_1: state.d = States.ATTACK_2
+            States.ATTACK_2: state.d = States.ATTACK_3
+            States.ATTACK_3: state.d = States.ATTACK_4
+            States.ATTACK_4: state.d = States.ATTACK_5
+            States.ATTACK_5: state.d = (bool) ? States.ATTACK_12 : States.ATTACK_6
+            States.ATTACK_6: state.d = (bool) ? States.ATTACK_11 : States.ATTACK_7
+            States.ATTACK_7: state.d = States.ATTACK_8
+            States.ATTACK_8: state.d = (bool) ? States.ATTACK_9 : States.ATTACK_10
+            States.ATTACK_9: state.d = States.ATTACK_10
+            States.ATTACK_10: state.d = States.ATTACK_11
+            States.ATTACK_11: state.d = States.ATTACK_4
+            States.ATTACK_12: state.d = States.ATTACK_13
+            States.ATTACK_13:
+                case (weapon.q) {
+                    Globals.LASER: state.d = States.REFRESH_0
+                    Globals.BLAST: state.d = States.ATTACK_14
+                    Globals.SLASH: state.d = States.MOVE_PLR_0
+                    default: state.d = States.ATTACK_13
+                }
+            States.ATTACK_14: state.d = States.MOVE_PLR_0
+                
+            // MOVE PLAYER
+            States.MOVE_PLR_0: state.d = States.MOVE_PLR_1
+            States.MOVE_PLR_1: state.d = (bool) ? States.MOVE_PLR_7 : States.MOVE_PLR_2
+            States.MOVE_PLR_2: state.d = States.MOVE_PLR_3
+            States.MOVE_PLR_3: state.d = (bool) ? States.GAME_OVER_0 : States.MOVE_PLR_4 
+            States.MOVE_PLR_4: state.d = States.MOVE_PLR_5
+            States.MOVE_PLR_5: state.d = States.MOVE_PLR_6
+            States.MOVE_PLR_6: state.d = (bool) ? States.GET_AMMO_0 : States.MOVE_PLR_7
+                
+                States.GET_AMMO_0: state.d = States.GET_AMMO_1
+                States.GET_AMMO_1: state.d = (bool) ? States.GET_AMMO_2 : States.GET_AMMO_3
+                States.GET_AMMO_2: state.d = States.GET_AMMO_3
+                States.GET_AMMO_3: state.d = States.GET_AMMO_4
+                States.GET_AMMO_4: state.d = (bool) ? States.GET_AMMO_3 : States.GET_AMMO_5
+                States.GET_AMMO_5: state.d = States.GET_AMMO_6
+                States.GET_AMMO_6: state.d = (bool) ? States.MOVE_PLR_7 : States.GET_AMMO_7
+                States.GET_AMMO_7: state.d = States.GET_AMMO_8
+                States.GET_AMMO_8: state.d = (bool) ? States.MOVE_PLR_7 : States.GET_AMMO_9
+                States.GET_AMMO_9: state.d = States.MOVE_PLR_7
+                
+            States.MOVE_PLR_7: state.d = States.REFRESH_0
+                
+            // CLEAR ATTACK
+            States.CLR_ATTACK_0: state.d = States.CLR_ATTACK_1
+            States.CLR_ATTACK_1: state.d = States.CLR_ATTACK_2
+            States.CLR_ATTACK_2: state.d = (bool) ? States.CLR_ATTACK_3 : States.CLR_ATTACK_4
+            States.CLR_ATTACK_3: state.d = States.CLR_ATTACK_4
+            States.CLR_ATTACK_4: state.d = States.CLR_ATTACK_5
+            States.CLR_ATTACK_5: state.d = (bool) ? States.CLR_ATTACK_1 : States.CLR_ATTACK_6
+            States.CLR_ATTACK_6: state.d = States.REFRESH_0
+           }
+    }
+}

@@ -1,0 +1,480 @@
+/******************************************************************************
+    
+    shape_rom: This module contains offsets for drawing weapon attack shapes.
+    An offset is chosen based on the current weapon, direction (R7) and address (R5).
+    When all zeroes (10b0) is read, the FSM detects that the shape is complete.
+    
+    shapes:
+        laser:
+        .......xx.......
+        .....xx.........
+        ...xx...........
+        .xx.............
+        Pxxxxxxxxxxxxxxx (laser extends until edge of screen)
+        .xx.............
+        ...xx...........
+        .....xx.........
+        .......xx.......
+        
+        blast:
+        ....xx..........
+        ...xxx..........
+        ..xxxx..........
+        .Pxxxx.......... (also moves player back)
+        ..xxxx..........
+        ...xxx..........
+        ....xx..........
+        
+        slash:
+        ................
+        ...xx...........
+        ...xxx..........
+        ..Pxxx.......... (also moves player forward)
+        ...xxx..........
+        ...xx...........
+        ................
+    
+******************************************************************************/
+module shape_rom #(
+    SLOTS_PER_SHAPE = 46 // max slots per shape entry, including stop signal 10b0
+)(
+    input direction[10],
+    input addr[32],
+    input weapon[2],
+    output shape_offset[10]
+) {
+    sig data[SLOTS_PER_SHAPE][10]
+    
+    always {
+        data  = $build(460b0, SLOTS_PER_SHAPE) // modify for SLOTS_PER_SHAPE
+        
+        case (weapon) {
+            Globals.LASER:
+                case (direction) {
+                    Globals.UP:
+                        data = $reverse({
+                            c{1b1, 4h1, 1b0, 4h0},
+                            c{1b1, 4h2, 1b0, 4h0},
+                            c{1b1, 4h3, 1b0, 4h0},
+                            c{1b1, 4h4, 1b0, 4h0},
+                            c{1b1, 4h5, 1b0, 4h0},
+                            c{1b1, 4h6, 1b0, 4h0},
+                            c{1b1, 4h7, 1b0, 4h0},
+                            c{1b1, 4h8, 1b0, 4h0},
+                            c{1b1, 4h9, 1b0, 4h0},
+                            c{1b1, 4hA, 1b0, 4h0},
+                            c{1b1, 4hB, 1b0, 4h0},
+                            c{1b1, 4hC, 1b0, 4h0},
+                            c{1b1, 4hD, 1b0, 4h0},
+                            c{1b1, 4hE, 1b0, 4h0},
+                            c{1b1, 4hF, 1b0, 4h0},
+                                
+                            c{1b1, 4h1, 1b0, 4h1},
+                            c{1b1, 4h2, 1b0, 4h1},
+                            c{1b1, 4h3, 1b0, 4h2},
+                            c{1b1, 4h4, 1b0, 4h2},
+                            c{1b1, 4h5, 1b0, 4h3},
+                            c{1b1, 4h6, 1b0, 4h3},
+                            c{1b1, 4h7, 1b0, 4h4},
+                            c{1b1, 4h8, 1b0, 4h4},
+                            c{1b1, 4h9, 1b0, 4h5},
+                            c{1b1, 4hA, 1b0, 4h5},
+                            c{1b1, 4hB, 1b0, 4h6},
+                            c{1b1, 4hC, 1b0, 4h6},
+                            c{1b1, 4hD, 1b0, 4h7},
+                            c{1b1, 4hE, 1b0, 4h7},
+                            c{1b1, 4hF, 1b0, 4h8},
+                                
+                            c{1b1, 4h1, 1b1, 4h1},
+                            c{1b1, 4h2, 1b1, 4h1},
+                            c{1b1, 4h3, 1b1, 4h2},
+                            c{1b1, 4h4, 1b1, 4h2},
+                            c{1b1, 4h5, 1b1, 4h3},
+                            c{1b1, 4h6, 1b1, 4h3},
+                            c{1b1, 4h7, 1b1, 4h4},
+                            c{1b1, 4h8, 1b1, 4h4},
+                            c{1b1, 4h9, 1b1, 4h5},
+                            c{1b1, 4hA, 1b1, 4h5},
+                            c{1b1, 4hB, 1b1, 4h6},
+                            c{1b1, 4hC, 1b1, 4h6},
+                            c{1b1, 4hD, 1b1, 4h7},
+                            c{1b1, 4hE, 1b1, 4h7},
+                            c{1b1, 4hF, 1b1, 4h8},
+                            10b0
+                        })
+                    Globals.DOWN:
+                        data = $reverse({
+                            c{1b0, 4h1, 1b0, 4h0},
+                            c{1b0, 4h2, 1b0, 4h0},
+                            c{1b0, 4h3, 1b0, 4h0},
+                            c{1b0, 4h4, 1b0, 4h0},
+                            c{1b0, 4h5, 1b0, 4h0},
+                            c{1b0, 4h6, 1b0, 4h0},
+                            c{1b0, 4h7, 1b0, 4h0},
+                            c{1b0, 4h8, 1b0, 4h0},
+                            c{1b0, 4h9, 1b0, 4h0},
+                            c{1b0, 4hA, 1b0, 4h0},
+                            c{1b0, 4hB, 1b0, 4h0},
+                            c{1b0, 4hC, 1b0, 4h0},
+                            c{1b0, 4hD, 1b0, 4h0},
+                            c{1b0, 4hE, 1b0, 4h0},
+                            c{1b0, 4hF, 1b0, 4h0},
+                                
+                            c{1b0, 4h1, 1b0, 4h1},
+                            c{1b0, 4h2, 1b0, 4h1},
+                            c{1b0, 4h3, 1b0, 4h2},
+                            c{1b0, 4h4, 1b0, 4h2},
+                            c{1b0, 4h5, 1b0, 4h3},
+                            c{1b0, 4h6, 1b0, 4h3},
+                            c{1b0, 4h7, 1b0, 4h4},
+                            c{1b0, 4h8, 1b0, 4h4},
+                            c{1b0, 4h9, 1b0, 4h5},
+                            c{1b0, 4hA, 1b0, 4h5},
+                            c{1b0, 4hB, 1b0, 4h6},
+                            c{1b0, 4hC, 1b0, 4h6},
+                            c{1b0, 4hD, 1b0, 4h7},
+                            c{1b0, 4hE, 1b0, 4h7},
+                            c{1b0, 4hF, 1b0, 4h8},
+                                
+                            c{1b0, 4h1, 1b1, 4h1},
+                            c{1b0, 4h2, 1b1, 4h1},
+                            c{1b0, 4h3, 1b1, 4h2},
+                            c{1b0, 4h4, 1b1, 4h2},
+                            c{1b0, 4h5, 1b1, 4h3},
+                            c{1b0, 4h6, 1b1, 4h3},
+                            c{1b0, 4h7, 1b1, 4h4},
+                            c{1b0, 4h8, 1b1, 4h4},
+                            c{1b0, 4h9, 1b1, 4h5},
+                            c{1b0, 4hA, 1b1, 4h5},
+                            c{1b0, 4hB, 1b1, 4h6},
+                            c{1b0, 4hC, 1b1, 4h6},
+                            c{1b0, 4hD, 1b1, 4h7},
+                            c{1b0, 4hE, 1b1, 4h7},
+                            c{1b0, 4hF, 1b1, 4h8},
+                            10b0
+                        })
+                    Globals.LEFT:
+                        data = $reverse({
+                            c{1b0, 4h0, 1b0, 4h1},
+                            c{1b0, 4h0, 1b0, 4h2},
+                            c{1b0, 4h0, 1b0, 4h3},
+                            c{1b0, 4h0, 1b0, 4h4},
+                            c{1b0, 4h0, 1b0, 4h5},
+                            c{1b0, 4h0, 1b0, 4h6},
+                            c{1b0, 4h0, 1b0, 4h7},
+                            c{1b0, 4h0, 1b0, 4h8},
+                            c{1b0, 4h0, 1b0, 4h9},
+                            c{1b0, 4h0, 1b0, 4hA},
+                            c{1b0, 4h0, 1b0, 4hB},
+                            c{1b0, 4h0, 1b0, 4hC},
+                            c{1b0, 4h0, 1b0, 4hD},
+                            c{1b0, 4h0, 1b0, 4hE},
+                            c{1b0, 4h0, 1b0, 4hF},
+                                
+                            c{1b0, 4h1, 1b0, 4h1},
+                            c{1b0, 4h1, 1b0, 4h2},
+                            c{1b0, 4h2, 1b0, 4h3},
+                            c{1b0, 4h2, 1b0, 4h4},
+                            c{1b0, 4h3, 1b0, 4h5},
+                            c{1b0, 4h3, 1b0, 4h6},
+                            c{1b0, 4h4, 1b0, 4h7},
+                            c{1b0, 4h4, 1b0, 4h8},
+                            c{1b0, 4h5, 1b0, 4h9},
+                            c{1b0, 4h5, 1b0, 4hA},
+                            c{1b0, 4h6, 1b0, 4hB},
+                            c{1b0, 4h6, 1b0, 4hC},
+                            c{1b0, 4h7, 1b0, 4hD},
+                            c{1b0, 4h7, 1b0, 4hE},
+                            c{1b0, 4h8, 1b0, 4hF},
+                                
+                            c{1b1, 4h1, 1b0, 4h1},
+                            c{1b1, 4h1, 1b0, 4h2},
+                            c{1b1, 4h2, 1b0, 4h3},
+                            c{1b1, 4h2, 1b0, 4h4},
+                            c{1b1, 4h3, 1b0, 4h5},
+                            c{1b1, 4h3, 1b0, 4h6},
+                            c{1b1, 4h4, 1b0, 4h7},
+                            c{1b1, 4h4, 1b0, 4h8},
+                            c{1b1, 4h5, 1b0, 4h9},
+                            c{1b1, 4h5, 1b0, 4hA},
+                            c{1b1, 4h6, 1b0, 4hB},
+                            c{1b1, 4h6, 1b0, 4hC},
+                            c{1b1, 4h7, 1b0, 4hD},
+                            c{1b1, 4h7, 1b0, 4hE},
+                            c{1b1, 4h8, 1b0, 4hF},
+                            10b0
+                        })
+                    Globals.RIGHT:
+                        data = $reverse({
+                            c{1b0, 4h0, 1b1, 4h1},
+                            c{1b0, 4h0, 1b1, 4h2},
+                            c{1b0, 4h0, 1b1, 4h3},
+                            c{1b0, 4h0, 1b1, 4h4},
+                            c{1b0, 4h0, 1b1, 4h5},
+                            c{1b0, 4h0, 1b1, 4h6},
+                            c{1b0, 4h0, 1b1, 4h7},
+                            c{1b0, 4h0, 1b1, 4h8},
+                            c{1b0, 4h0, 1b1, 4h9},
+                            c{1b0, 4h0, 1b1, 4hA},
+                            c{1b0, 4h0, 1b1, 4hB},
+                            c{1b0, 4h0, 1b1, 4hC},
+                            c{1b0, 4h0, 1b1, 4hD},
+                            c{1b0, 4h0, 1b1, 4hE},
+                            c{1b0, 4h0, 1b1, 4hF},
+                                
+                            c{1b0, 4h1, 1b1, 4h1},
+                            c{1b0, 4h1, 1b1, 4h2},
+                            c{1b0, 4h2, 1b1, 4h3},
+                            c{1b0, 4h2, 1b1, 4h4},
+                            c{1b0, 4h3, 1b1, 4h5},
+                            c{1b0, 4h3, 1b1, 4h6},
+                            c{1b0, 4h4, 1b1, 4h7},
+                            c{1b0, 4h4, 1b1, 4h8},
+                            c{1b0, 4h5, 1b1, 4h9},
+                            c{1b0, 4h5, 1b1, 4hA},
+                            c{1b0, 4h6, 1b1, 4hB},
+                            c{1b0, 4h6, 1b1, 4hC},
+                            c{1b0, 4h7, 1b1, 4hD},
+                            c{1b0, 4h7, 1b1, 4hE},
+                            c{1b0, 4h8, 1b1, 4hF},
+                                
+                            c{1b1, 4h1, 1b1, 4h1},
+                            c{1b1, 4h1, 1b1, 4h2},
+                            c{1b1, 4h2, 1b1, 4h3},
+                            c{1b1, 4h2, 1b1, 4h4},
+                            c{1b1, 4h3, 1b1, 4h5},
+                            c{1b1, 4h3, 1b1, 4h6},
+                            c{1b1, 4h4, 1b1, 4h7},
+                            c{1b1, 4h4, 1b1, 4h8},
+                            c{1b1, 4h5, 1b1, 4h9},
+                            c{1b1, 4h5, 1b1, 4hA},
+                            c{1b1, 4h6, 1b1, 4hB},
+                            c{1b1, 4h6, 1b1, 4hC},
+                            c{1b1, 4h7, 1b1, 4hD},
+                            c{1b1, 4h7, 1b1, 4hE},
+                            c{1b1, 4h8, 1b1, 4hF},
+                            10b0
+                        })
+                }
+            Globals.BLAST:
+                case (direction) {
+                    Globals.UP:
+                        data = $reverse({
+                            c{1b1, 4h1, 1b0, 4h0},
+                            c{1b1, 4h1, 1b0, 4h1},
+                            c{1b1, 4h1, 1b1, 4h1},
+                                
+                            c{1b1, 4h2, 1b0, 4h0},
+                            c{1b1, 4h2, 1b0, 4h1},
+                            c{1b1, 4h2, 1b0, 4h2},
+                            c{1b1, 4h2, 1b1, 4h1},
+                            c{1b1, 4h2, 1b1, 4h2},
+                                
+                            c{1b1, 4h3, 1b0, 4h0},
+                            c{1b1, 4h3, 1b0, 4h1},
+                            c{1b1, 4h3, 1b0, 4h2},
+                            c{1b1, 4h3, 1b0, 4h3},
+                            c{1b1, 4h3, 1b1, 4h1},
+                            c{1b1, 4h3, 1b1, 4h2},
+                            c{1b1, 4h3, 1b1, 4h3},
+                                
+                            c{1b1, 4h4, 1b0, 4h0},
+                            c{1b1, 4h4, 1b0, 4h1},
+                            c{1b1, 4h4, 1b0, 4h2},
+                            c{1b1, 4h4, 1b0, 4h3},
+                            c{1b1, 4h4, 1b1, 4h1},
+                            c{1b1, 4h4, 1b1, 4h2},
+                            c{1b1, 4h4, 1b1, 4h3},
+                            10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0,
+                            10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0,
+                            10b0, 10b0, 10b0, 10b0
+                        })
+                    Globals.DOWN:
+                        data = $reverse({
+                            c{1b0, 4h1, 1b0, 4h0},
+                            c{1b0, 4h1, 1b0, 4h1},
+                            c{1b0, 4h1, 1b1, 4h1},
+                                
+                            c{1b0, 4h2, 1b0, 4h0},
+                            c{1b0, 4h2, 1b0, 4h1},
+                            c{1b0, 4h2, 1b0, 4h2},
+                            c{1b0, 4h2, 1b1, 4h1},
+                            c{1b0, 4h2, 1b1, 4h2},
+                                
+                            c{1b0, 4h3, 1b0, 4h0},
+                            c{1b0, 4h3, 1b0, 4h1},
+                            c{1b0, 4h3, 1b0, 4h2},
+                            c{1b0, 4h3, 1b0, 4h3},
+                            c{1b0, 4h3, 1b1, 4h1},
+                            c{1b0, 4h3, 1b1, 4h2},
+                            c{1b0, 4h3, 1b1, 4h3},
+                                
+                            c{1b0, 4h4, 1b0, 4h0},
+                            c{1b0, 4h4, 1b0, 4h1},
+                            c{1b0, 4h4, 1b0, 4h2},
+                            c{1b0, 4h4, 1b0, 4h3},
+                            c{1b0, 4h4, 1b1, 4h1},
+                            c{1b0, 4h4, 1b1, 4h2},
+                            c{1b0, 4h4, 1b1, 4h3},
+                            10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0,
+                            10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0,
+                            10b0, 10b0, 10b0, 10b0
+                        })
+                    Globals.LEFT:
+                        data = $reverse({
+                            c{1b0, 4h0, 1b0, 4h1},
+                            c{1b0, 4h1, 1b0, 4h1},
+                            c{1b1, 4h1, 1b0, 4h1},
+                                
+                            c{1b0, 4h0, 1b0, 4h2},
+                            c{1b0, 4h1, 1b0, 4h2},
+                            c{1b0, 4h2, 1b0, 4h2},
+                            c{1b1, 4h1, 1b0, 4h2},
+                            c{1b1, 4h2, 1b0, 4h2},
+                                
+                            c{1b0, 4h0, 1b0, 4h3},
+                            c{1b0, 4h1, 1b0, 4h3},
+                            c{1b0, 4h2, 1b0, 4h3},
+                            c{1b0, 4h3, 1b0, 4h3},
+                            c{1b1, 4h1, 1b0, 4h3},
+                            c{1b1, 4h2, 1b0, 4h3},
+                            c{1b1, 4h3, 1b0, 4h3},
+                                
+                            c{1b0, 4h0, 1b0, 4h4},
+                            c{1b0, 4h1, 1b0, 4h4},
+                            c{1b0, 4h2, 1b0, 4h4},
+                            c{1b0, 4h3, 1b0, 4h4},
+                            c{1b1, 4h1, 1b0, 4h4},
+                            c{1b1, 4h2, 1b0, 4h4},
+                            c{1b1, 4h3, 1b0, 4h4},
+                            10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0,
+                            10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0,
+                            10b0, 10b0, 10b0, 10b0
+                        })
+                    Globals.RIGHT:
+                        data = $reverse({
+                            c{1b0, 4h0, 1b1, 4h1},
+                            c{1b0, 4h1, 1b1, 4h1},
+                            c{1b1, 4h1, 1b1, 4h1},
+                                
+                            c{1b0, 4h0, 1b1, 4h2},
+                            c{1b0, 4h1, 1b1, 4h2},
+                            c{1b0, 4h2, 1b1, 4h2},
+                            c{1b1, 4h1, 1b1, 4h2},
+                            c{1b1, 4h2, 1b1, 4h2},
+                                
+                            c{1b0, 4h0, 1b1, 4h3},
+                            c{1b0, 4h1, 1b1, 4h3},
+                            c{1b0, 4h2, 1b1, 4h3},
+                            c{1b0, 4h3, 1b1, 4h3},
+                            c{1b1, 4h1, 1b1, 4h3},
+                            c{1b1, 4h2, 1b1, 4h3},
+                            c{1b1, 4h3, 1b1, 4h3},
+                                
+                            c{1b0, 4h0, 1b1, 4h4},
+                            c{1b0, 4h1, 1b1, 4h4},
+                            c{1b0, 4h2, 1b1, 4h4},
+                            c{1b0, 4h3, 1b1, 4h4},
+                            c{1b1, 4h1, 1b1, 4h4},
+                            c{1b1, 4h2, 1b1, 4h4},
+                            c{1b1, 4h3, 1b1, 4h4},
+                            10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0,
+                            10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0,
+                            10b0, 10b0, 10b0, 10b0
+                        })
+                }
+                Globals.SLASH:
+                case (direction) {
+                    Globals.UP:
+                        data = $reverse({
+                            c{1b1, 4h1, 1b0, 4h0},
+                            c{1b1, 4h1, 1b0, 4h1},
+                            c{1b1, 4h1, 1b0, 4h2},
+                            c{1b1, 4h1, 1b1, 4h1},
+                            c{1b1, 4h1, 1b1, 4h2},
+                                
+                            c{1b1, 4h2, 1b0, 4h0},
+                            c{1b1, 4h2, 1b0, 4h1},
+                            c{1b1, 4h2, 1b0, 4h2},
+                            c{1b1, 4h2, 1b1, 4h1},
+                            c{1b1, 4h2, 1b1, 4h2},
+                                
+                            c{1b1, 4h3, 1b0, 4h0},
+                            c{1b1, 4h3, 1b0, 4h1},
+                            c{1b1, 4h3, 1b1, 4h1},
+                            10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0,
+                            10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0,
+                            10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0,
+                            10b0, 10b0, 10b0
+                        })
+                    Globals.DOWN:
+                        data = $reverse({
+                            c{1b0, 4h1, 1b0, 4h0},
+                            c{1b0, 4h1, 1b0, 4h1},
+                            c{1b0, 4h1, 1b0, 4h2},
+                            c{1b0, 4h1, 1b1, 4h1},
+                            c{1b0, 4h1, 1b1, 4h2},
+                                
+                            c{1b0, 4h2, 1b0, 4h0},
+                            c{1b0, 4h2, 1b0, 4h1},
+                            c{1b0, 4h2, 1b0, 4h2},
+                            c{1b0, 4h2, 1b1, 4h1},
+                            c{1b0, 4h2, 1b1, 4h2},
+                                
+                            c{1b0, 4h3, 1b0, 4h0},
+                            c{1b0, 4h3, 1b0, 4h1},
+                            c{1b0, 4h3, 1b1, 4h1},
+                            10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0,
+                            10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0,
+                            10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0,
+                            10b0, 10b0, 10b0
+                        })
+                    Globals.LEFT:
+                        data = $reverse({
+                            c{1b0, 4h0, 1b0, 4h1},
+                            c{1b0, 4h1, 1b0, 4h1},
+                            c{1b0, 4h2, 1b0, 4h1},
+                            c{1b1, 4h1, 1b0, 4h1},
+                            c{1b1, 4h2, 1b0, 4h1},
+                                
+                            c{1b0, 4h0, 1b0, 4h2},
+                            c{1b0, 4h1, 1b0, 4h2},
+                            c{1b0, 4h2, 1b0, 4h2},
+                            c{1b1, 4h1, 1b0, 4h2},
+                            c{1b1, 4h2, 1b0, 4h2},
+                                
+                            c{1b0, 4h0, 1b0, 4h3},
+                            c{1b0, 4h1, 1b0, 4h3},
+                            c{1b1, 4h1, 1b0, 4h3},
+                            10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0,
+                            10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0,
+                            10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0,
+                            10b0, 10b0, 10b0
+                        })
+                    Globals.RIGHT:
+                        data = $reverse({
+                            c{1b0, 4h0, 1b1, 4h1},
+                            c{1b0, 4h1, 1b1, 4h1},
+                            c{1b0, 4h2, 1b1, 4h1},
+                            c{1b1, 4h1, 1b1, 4h1},
+                            c{1b1, 4h2, 1b1, 4h1},
+                                
+                            c{1b0, 4h0, 1b1, 4h2},
+                            c{1b0, 4h1, 1b1, 4h2},
+                            c{1b0, 4h2, 1b1, 4h2},
+                            c{1b1, 4h1, 1b1, 4h2},
+                            c{1b1, 4h2, 1b1, 4h2},
+                                
+                            c{1b0, 4h0, 1b1, 4h3},
+                            c{1b0, 4h1, 1b1, 4h3},
+                            c{1b1, 4h1, 1b1, 4h3},
+                            10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0,
+                            10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0,
+                            10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0, 10b0,
+                            10b0, 10b0, 10b0
+                        })
+                }
+        }
+        shape_offset = data[addr[$clog2(SLOTS_PER_SHAPE)-1:0]]
+    }
+}

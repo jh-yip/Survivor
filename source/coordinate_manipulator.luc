@@ -1,0 +1,50 @@
+/******************************************************************************
+
+   coordinate_manipulator: This module is used by the ALU for custom
+   coordinate-based operations.
+   
+   APPR calculates coordinates one step closer to coordinates b FROM coordinates a,
+   MOVE calculates the resulting coordinates when offset b is applied to coordinates a, and
+   REV reverses the direction of the input 10-bit encoded direction a.
+   
+******************************************************************************/
+module coordinate_manipulator #( 
+    DIMENSIONS = 16
+) (
+    input a[32],
+    input b[32],
+    input alufn0,
+    input alufn1,
+    output out[32]
+) {
+    compare_index row_compare(.a(b[7:4]), .b(a[7:4])) // for APPR, a and b switched because a approaches b
+    compare_index col_compare(.a(b[3:0]), .b(a[3:0])) // for APPR, a and b switched because a approaches b
+    adder row_adder(#SIZE(5)) // for row output. needs to be size 5 because operation is signed
+    adder col_adder (#SIZE(5)) // for col output. needs to be size 5 because operation is signed
+    
+    always {
+        row_adder.a =      a[7:4]
+        row_adder.b =      (alufn0) ? row_compare.out[0] : b[8:5]
+        row_adder.alufn0 = (alufn0) ? row_compare.out[1] : b[9]
+        
+        col_adder.a =      a[3:0]
+        col_adder.b =      (alufn0) ? col_compare.out[0] : b[3:0]
+        col_adder.alufn0 = (alufn0) ? col_compare.out[1] : b[4]
+                
+        //REV
+        if (alufn1) {
+            out[31:10] = 22b0
+            out[9] = (|a[8:5]) ? ~a[9] : 1b0
+            out[8:5] = a[8:5]
+            out[4] = (|a[3:0]) ? ~a[4] : 1b0
+            out[3:0] = a[3:0]
+        }
+        
+        // MOVE / APPR
+        else if (row_adder.out[4] | col_adder.out[4]) { // check OOB
+            out = 10h3FF
+        } else {
+            out = c{row_adder.out[3:0], col_adder.out[3:0]}
+        }
+    }
+}

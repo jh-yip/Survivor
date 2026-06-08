@@ -1,0 +1,69 @@
+/******************************************************************************
+
+   seven_seg_444_driver: This module converts three 32-bit values representing positive
+   decimal values into segments and select bits to output these values across three separate
+   7-segment displays (only one digit across all 3 displays is active at any time).
+   
+******************************************************************************/
+module seven_seg_444_driver (
+    input clk,  // clock
+    input rst,  // reset
+    
+    input data0[32],
+    input data1[32],
+    input data2[32],
+    
+    output select[12],
+    output segments[7]
+) {
+    counter select_counter (.clk(clk), .rst(rst), #DIV(Globals.SEG_SELECT_DIV), #SIZE(4), #TOP(11))
+    bin_to_dec bin_to_dec(#DIGITS(4), #LEADING_ZEROS(0))
+    
+    const DIGITS = 4;
+    const WIDTH = $clog2($pow(10, DIGITS));
+    
+    // select
+    always {
+        sig sel[12]
+        sig digit[4]
+        
+        // select (active low)
+        case (select_counter.value) {
+            4d0: sel = 12b1000_0000_0000; bin_to_dec.value = data0[WIDTH-1:0]; digit = bin_to_dec.digits[3]
+            4d1: sel = 12b0100_0000_0000; bin_to_dec.value = data0[WIDTH-1:0]; digit = bin_to_dec.digits[2]
+            4d2: sel = 12b0010_0000_0000; bin_to_dec.value = data0[WIDTH-1:0]; digit = bin_to_dec.digits[1]
+            4d3: sel = 12b0001_0000_0000; bin_to_dec.value = data0[WIDTH-1:0]; digit = bin_to_dec.digits[0]
+                
+            4d4: sel = 12b0000_1000_0000; bin_to_dec.value = data1[WIDTH-1:0]; digit = bin_to_dec.digits[3]
+            4d5: sel = 12b0000_0100_0000; bin_to_dec.value = data1[WIDTH-1:0]; digit = bin_to_dec.digits[2]
+            4d6: sel = 12b0000_0010_0000; bin_to_dec.value = data1[WIDTH-1:0]; digit = bin_to_dec.digits[1]
+            4d7: sel = 12b0000_0001_0000; bin_to_dec.value = data1[WIDTH-1:0]; digit = bin_to_dec.digits[0]
+                
+            4d8: sel = 12b0000_0000_1000; bin_to_dec.value = data2[WIDTH-1:0]; digit = bin_to_dec.digits[3]
+            4d9: sel = 12b0000_0000_0100; bin_to_dec.value = data2[WIDTH-1:0]; digit = bin_to_dec.digits[2]
+            4d10: sel = 12b0000_0000_0010; bin_to_dec.value = data2[WIDTH-1:0]; digit = bin_to_dec.digits[1]
+            4d11: sel = 12b0000_0000_0001; bin_to_dec.value = data2[WIDTH-1:0]; digit = bin_to_dec.digits[0]
+            default: sel = 12b0000_0000_0000; bin_to_dec.value = WIDTHx{1bx}; digit = 4bx
+        }
+        
+        // segments
+        sig segs[7]
+        case (digit) {
+            4d0: segs = 7b0111111;
+            4d1: segs = 7b0000110;
+            4d2: segs = 7b1011011;
+            4d3: segs = 7b1001111;
+            4d4: segs = 7b1100110;
+            4d5: segs = 7b1101101;
+            4d6: segs = 7b1111101;
+            4d7: segs = 7b0000111;
+            4d8: segs = 7b1111111;
+            4d9: segs = 7b1101111;
+            default: segs = 7b0000000;
+        }
+        
+        // out
+        select = sel // active high
+        segments = ~segs // active low
+    }
+}

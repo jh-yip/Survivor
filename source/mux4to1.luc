@@ -1,0 +1,24 @@
+/******************************************************************************
+
+   mux4to1: This module outputs 1 of 4 input signals based on 2 select bits.
+   
+******************************************************************************/
+module mux4to1 (
+    input in_0, 
+    input in_1, 
+    input in_2, 
+    input in_3,
+    input s0,
+    input s1,
+    output out
+) {
+    always {
+        case (c{s1, s0}) {
+            2d0: out = in_0
+            2d1: out = in_1
+            2d2: out = in_2
+            2d3: out = in_3
+            default: out = 1bx
+        }
+    }
+}

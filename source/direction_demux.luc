@@ -1,0 +1,22 @@
+module direction_demux (
+    input in,
+    input direction[10],
+    output out_0,
+    output out_1,
+    output out_2,
+    output out_3
+) {
+    always {
+        out_0 = 1b0
+        out_1 = 1b0
+        out_2 = 1b0
+        out_3 = 1b0
+        
+        case (direction) {
+            Globals.UP: out_0 = in
+            Globals.DOWN: out_1 = in
+            Globals.LEFT: out_2 = in
+            Globals.RIGHT: out_3 = in
+        }
+    }
+}

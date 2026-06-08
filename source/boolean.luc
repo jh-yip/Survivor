@@ -1,0 +1,36 @@
+/******************************************************************************
+
+   boolean: This module performs a bitwise boolean operation on a and b based
+   on alufn[3:0] and outputs the result.
+   
+   | alufn[3:0] | OP  |
+   | ---------- | --- |
+   |    1000    | AND |
+   |    1110    | OR  |
+   |    0110    | XOR |
+   |    1010    | "A" |
+   
+******************************************************************************/
+module boolean #(
+    SIZE = 32 : SIZE > 0
+)(
+    input a[SIZE],
+    input b[SIZE],
+    input alufn[6],
+    output out[SIZE]
+) {
+    mux4to1 mux[SIZE];
+    
+    always {
+        mux.in_0 = SIZEx{alufn[0]};
+        mux.in_1 = SIZEx{alufn[1]};
+        mux.in_2 = SIZEx{alufn[2]};
+        mux.in_3 = SIZEx{alufn[3]};
+        
+        mux.s0 = a;
+        mux.s1 = b;
+        
+        out = mux.out;
+    }
+    
+}

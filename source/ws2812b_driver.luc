@@ -1,0 +1,90 @@
+module ws2812b_driver #(
+    PIXEL_COUNT = 1024 : PIXEL_COUNT > 0  		// The number of LEDs in the chain.
+)(
+    input clk,  // clock
+    input rst,  // reset
+    input update_display, // feed '1' to update the display with new 'color', if '0' then it will stay displaying its old value
+    input color[24], // RGB, 8 bits each, color to render for all LED
+    input downscale,
+    output requested_addr[$clog2(PIXEL_COUNT)],  // Index of the LED, with the color in color[24]
+    output data,		// Goes to the first LED in the chain
+    output driver_done // this turns to 1 once we have refreshed all pixels in the LED
+) {
+    enum States {IDLE, SEND_PIXEL, RESET}
+    
+    // at 20Mhz, every clock cycle is 50ns
+    
+    .clk(clk), .rst(rst) {
+        dff state[$width(States)] (#INIT(States.IDLE)) // start at RESET state, don't show anything yet
+        dff pixel_address_ctr[$clog2(PIXEL_COUNT)](#INIT(0))
+        dff color_bit_ctr[5] // 32
+        dff pulse_enc_ctr[5] // [5] for 25<32 @ 20MHz, [7] for 125<128 @ 100MHz
+        dff rst_ctr[$clog2(1200)] (#INIT(0)) // reset requires 50us of zeroes (1000 clk cycles at 20MHz). give 1200 for safety
+        dff update_request(#INIT(0)) // to store update request so we don't miss it 
+    }
+    
+    index_mapper index_mapper
+    index_downscaler index_downscaler
+    
+    // convert RGB input to [B0 B1 B2 B3 B4 B5 B6 B7 R0 R1 R2 R3 R4 R5 R6 R7 G0 G1 G2 G3 G4 G5 G6 G7]
+    sig color_data[24] = c{$reverse(color[7:0]), $reverse(color[23:16]), $reverse(color[15:8])}
+    
+    always {
+        data = 0
+        driver_done = 0
+        
+        // dff connections
+        rst_ctr.d = rst_ctr.q
+        pixel_address_ctr.d = pixel_address_ctr.q
+        state.d = state.q
+        color_bit_ctr.d = color_bit_ctr.q 
+        pulse_enc_ctr.d = pulse_enc_ctr.q 
+        update_request.d = update_request.q
+        
+        // output
+        index_mapper.input_addr = pixel_address_ctr.q
+        index_downscaler.input_addr = index_mapper.mapped_addr
+        requested_addr = (downscale) ? index_downscaler.downscaled_addr : index_mapper.mapped_addr
+        
+        // always store update request if it's not set 
+        if (~update_request.q){
+            update_request.d = update_display
+        }
+        
+        case (state.q) {
+            States.IDLE:
+                if (update_request.q) {
+                    update_request.d = 0 // clear the update request
+                    state.d = States.SEND_PIXEL // go back to update the entire strip again 
+                }
+                
+            States.SEND_PIXEL:
+                if (color_data[color_bit_ctr.q]) // if current bit is HIGH, send 16 1's and 9 0's
+                    data = pulse_enc_ctr.q < 16
+                else // if current bit is LOW, send 8 1's, and 17 0's
+                    data = pulse_enc_ctr.q < 8
+                
+                pulse_enc_ctr.d = pulse_enc_ctr.q + 1
+                if (pulse_enc_ctr.q == 25){ // check if you can send next bit 
+                    pulse_enc_ctr.d = 0
+
+                    color_bit_ctr.d = color_bit_ctr.q + 1
+                    if (color_bit_ctr.q == 23) { // check if you have sent all 24 bits 
+                        color_bit_ctr.d = 0 // reset bit counter 
+                        pixel_address_ctr.d = pixel_address_ctr.q + 1 // advance pixel counter
+                        if (pixel_address_ctr.q == PIXEL_COUNT-1) { // check if you have sent data to all LEDs
+                            pixel_address_ctr.d = 0 // reset pixel counter
+                            state.d = States.RESET
+                        }
+                    }
+                }
+            States.RESET:
+                rst_ctr.d = rst_ctr.q + 1
+                if (rst_ctr.q == 1199) {
+                    rst_ctr.d = 0
+                    driver_done = 1
+                    state.d = States.IDLE
+                } 
+        }
+    }
+}

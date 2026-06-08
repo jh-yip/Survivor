@@ -1,0 +1,37 @@
+/******************************************************************************
+
+   compare_index: This module takes two 4-bit values, compares them and
+   outputs a 2-bit value:
+       2b00 if a == b,
+       2b01 if a > b,
+       2b11 if a < b.
+       
+   The output is used as an offset for the APPR operation.
+   Although offsets are usually encoded in 10 bits, this module's output
+   only needs to be 4 bits because APPR only moves one tile in both axes at most.
+   
+******************************************************************************/
+module compare_index (
+    input a[4],
+    input b[4],
+    output out[2]
+) {
+    adder adder(#SIZE(5), .alufn0(1b1)) // for row comparison, always subtract. needs to be size 5 because operation is signed
+    mux2to1 mux1[2]
+    mux2to1 mux2[2]
+    
+    always {
+        adder.a = c{1b0,a}
+        adder.b = c{1b0,b}
+        
+        mux1.in_0 = 2b01 // a > b
+        mux1.in_1 = 2b11 // a < b
+        mux1.s = 2x{(adder.n^adder.v)}
+        
+        mux2.in_0 = mux1.out
+        mux2.in_1 = 2b00 // a == b
+        mux2.s = 2x{adder.z}
+        
+        out = mux2.out
+    }
+}

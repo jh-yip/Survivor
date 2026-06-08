@@ -1,0 +1,30 @@
+/******************************************************************************
+
+   x_bit_left_shifter: This module outputs the input signal shifted a number
+   of bits to the left based on the SHIFT parameter.
+   
+   The enable and pad_bit inputs allow this module to be used as part of a
+   compact shifter module.
+   
+******************************************************************************/
+module x_bit_left_shifter #(
+    SHIFT = 1 : 0 <= SHIFT < 32,
+    SIZE = 32 : SIZE > 0
+)(
+    input a[SIZE],
+    input enable,
+    input pad_bit,
+    output out[SIZE]
+) {
+    mux2to1 mux[SIZE]
+    
+    always {
+        sig shifted_signal[SIZE] = c{a[SIZE-1-SHIFT:0], SHIFTx{pad_bit}}
+        
+        mux.in_0 = a
+        mux.in_1 = shifted_signal
+        mux.s = 32x{enable}
+        
+        out = mux.out;
+    }
+}

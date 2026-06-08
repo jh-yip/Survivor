@@ -1,0 +1,44 @@
+/******************************************************************************
+
+   alu: This module performs an arithmetic operation (selected using alufn) on
+   two 32-bit inputs and outputs the 32-bit result along with a zero bit,
+   signed overflow bit and negative bit.
+   
+******************************************************************************/
+module alu (
+    input a[32],
+    input b[32],
+    input alufn[6],
+    output out[32],
+    output z,
+    output v,
+    output n
+) {
+    .a(a), .b(b) {
+        adder adder (.alufn0(alufn[0]))
+        shifter shifter (.alufn0(alufn[0]), .alufn1(alufn[1]))
+        boolean boolean (.alufn(alufn))
+        multiplier multiplier
+        coordinate_manipulator coordinate_manipulator(.alufn0(alufn[0]), .alufn1(alufn[1]))
+    }
+    
+    compare compare (.alufn(alufn), .z(adder.z),.v(adder.v),.n(adder.n))        
+
+    
+    mux4to1 op_mux[32]
+    
+    always {
+        op_mux.in_0 = alufn[1] ? multiplier.out : adder.out
+        op_mux.in_1 = boolean.out
+        op_mux.in_2 = shifter.out
+        op_mux.in_3 = alufn[3] ? coordinate_manipulator.out : compare.out
+        op_mux.s0 = 32x{alufn[4]}
+        op_mux.s1 = 32x{alufn[5]}
+        
+        // outputs
+        z = adder.z;
+        v = adder.v;
+        n = adder.n;
+        out = op_mux.out;
+    }
+}

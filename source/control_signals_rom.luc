@@ -1,0 +1,175 @@
+/******************************************************************************
+
+   control_signals_rom: This module contains control signal data which is read by
+   the control unit based on its current state and output to the rest of the system.
+   
+******************************************************************************/
+module control_signals_rom (
+    input state[8],
+    output out[39]
+) {
+    const MEMORY = $reverse({
+            // START
+            c{3hx, 3hx, 4h5, 4h8, 6h00,   1b0, 3hx,   1b0, 4h0, 1b1,   1b0, 3hx,   3h0, 1b0, 1b0}, // START_0
+            c{3hx, 3hx, 4h5, 4h8, 6h00,   1b0, 3hx,   1b0, 4h0, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // START_1
+            c{3hx, 3hx, 4hx, 4hx, 6hxx,   1b0, 3hx,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // START_2
+
+            // GAME OVER
+            c{3hx, 3hx, 4h5, 4h8, 6h00,   1b0, 3hx,   1b0, 4h1, 1b1,   1b0, 3hx,   3h0, 1b0, 1b0}, // GAME_OVER_0
+            c{3hx, 3hx, 4h5, 4h8, 6h00,   1b0, 3hx,   1b0, 4h1, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // GAME_OVER_1
+            c{3hx, 3hx, 4hx, 4hx, 6hxx,   1b0, 3hx,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // GAME_OVER_2
+
+            // WIN
+            c{3hx, 3hx, 4h5, 4h8, 6h00,   1b0, 3hx,   1b0, 4h2, 1b1,   1b0, 3hx,   3h0, 1b0, 1b0}, // WIN_0
+            c{3hx, 3hx, 4h5, 4h8, 6h00,   1b0, 3hx,   1b0, 4h2, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // WIN_1
+            c{3hx, 3hx, 4hx, 4hx, 6hxx,   1b0, 3hx,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // WIN_2
+
+            // DIFFICULTY SELECT
+            c{3hx, 3hx, 4hx, 4hx, 6hxx,   1b0, 3hx,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // DIFFICULTY_SELECT
+
+            // EASY
+            c{3hx, 3hx, 4h5, 4h8, 6h00,   1b0, 3hx,   1b0, 4h3, 1b1,   1b0, 3hx,   3h0, 1b0, 1b0}, // EASY_0
+            c{3hx, 3hx, 4h5, 4h8, 6h00,   1b0, 3hx,   1b0, 4h3, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // EASY_1
+            c{3hx, 3hx, 4hx, 4hx, 6hxx,   1b0, 3hx,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // EASY_2
+
+            // MEDIUM
+            c{3hx, 3hx, 4h5, 4h8, 6h00,   1b0, 3hx,   1b0, 4h4, 1b1,   1b0, 3hx,   3h0, 1b0, 1b0}, // MEDIUM_0
+            c{3hx, 3hx, 4h5, 4h8, 6h00,   1b0, 3hx,   1b0, 4h4, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // MEDIUM_1
+            c{3hx, 3hx, 4hx, 4hx, 6hxx,   1b0, 3hx,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // MEDIUM_2
+
+            // HARD
+            c{3hx, 3hx, 4h5, 4h8, 6h00,   1b0, 3hx,   1b0, 4h5, 1b1,   1b0, 3hx,   3h0, 1b0, 1b0}, // HARD_0
+            c{3hx, 3hx, 4h5, 4h8, 6h00,   1b0, 3hx,   1b0, 4h5, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // HARD_1
+            c{3hx, 3hx, 4hx, 4hx, 6hxx,   1b0, 3hx,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // HARD_2
+
+            // WEAPON SELECT
+            c{3hx, 3hx, 4hx, 4hx, 6hxx,   1b0, 3hx,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // WEAPON_SELECT
+
+            // LASER
+            c{3hx, 3hx, 4h5, 4h8, 6h00,   1b0, 3hx,   1b0, 4h6, 1b1,   1b0, 3hx,   3h0, 1b0, 1b0}, // LASER_0
+            c{3hx, 3hx, 4h5, 4h8, 6h00,   1b0, 3hx,   1b0, 4h6, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // LASER_1
+            c{3hx, 3hx, 4hx, 4hx, 6hxx,   1b0, 3hx,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // LASER_2
+
+            // BLAST
+            c{3hx, 3hx, 4h5, 4h8, 6h00,   1b0, 3hx,   1b0, 4h7, 1b1,   1b0, 3hx,   3h0, 1b0, 1b0}, // BLAST_0
+            c{3hx, 3hx, 4h5, 4h8, 6h00,   1b0, 3hx,   1b0, 4h7, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // BLAST_1
+            c{3hx, 3hx, 4hx, 4hx, 6hxx,   1b0, 3hx,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // BLAST_2
+
+            // SLASH
+            c{3hx, 3hx, 4h5, 4h8, 6h00,   1b0, 3hx,   1b0, 4h8, 1b1,   1b0, 3hx,   3h0, 1b0, 1b0}, // SLASH_0
+            c{3hx, 3hx, 4h5, 4h8, 6h00,   1b0, 3hx,   1b0, 4h8, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // SLASH_1
+            c{3hx, 3hx, 4hx, 4hx, 6hxx,   1b0, 3hx,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // SLASH_2
+            
+            // SETUP
+            c{3h5, 3hx, 4h0, 4hx, 6h1A,   1b1, 3h0,   1b1, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b1}, // SETUP_0
+            c{3h5, 3hx, 4h0, 4h1, 6h00,   1b0, 3hx,   1bx, 4hx, 1b0,   1b1, 3h5,   3h0, 1b0, 1b1}, // SETUP_1
+            c{3h5, 3hx, 4h0, 4h7, 6h35,   1b0, 3hx,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b1}, // SETUP_2
+            c{3hx, 3hx, 4h4, 4hx, 6h1A,   1b0, 3hx,   1bx, 4hx, 1b0,   1b1, 3h1,   3h0, 1b0, 1b1}, // SETUP_3
+            c{3h0, 3h1, 4h0, 4h0, 6h33,   1b0, 3hx,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b1}, // SETUP_4
+            c{3h0, 3hx, 4h0, 4hx, 6h1A,   1b1, 3h1,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b1}, // SETUP_5
+            c{3h1, 3hx, 4h0, 4hx, 6h1A,   1b1, 3h2,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b1}, // SETUP_6
+            
+            // REFRESH
+            c{3hx, 3hx, 4h5, 4hx, 6h1A,   1b0, 3hx,   1b1, 4hx, 1b1,   1b0, 3hx,   3h0, 1b0, 1b0}, // REFRESH_0
+            c{3hx, 3hx, 4h5, 4hx, 6h1A,   1b0, 3hx,   1b1, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // REFRESH_1
+           
+            // GAME LOOP
+            c{3hx, 3hx, 4hx, 4hx, 6hxx,   1b0, 3hx,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // GAME_LOOP
+            
+            // SET ATTACK
+            c{3hx, 3hx, 4h6, 4hx, 6h1A,   1b0, 3hx,   1bx, 4hx, 1b0,   1b1, 3h7,   3h0, 1b0, 1b0}, // SET_ATTACK_U
+            c{3hx, 3hx, 4h7, 4hx, 6h1A,   1b0, 3hx,   1bx, 4hx, 1b0,   1b1, 3h7,   3h0, 1b0, 1b0}, // SET_ATTACK_D
+            c{3hx, 3hx, 4h8, 4hx, 6h1A,   1b0, 3hx,   1bx, 4hx, 1b0,   1b1, 3h7,   3h0, 1b0, 1b0}, // SET_ATTACK_L
+            c{3hx, 3hx, 4h9, 4hx, 6h1A,   1b0, 3hx,   1bx, 4hx, 1b0,   1b1, 3h7,   3h0, 1b0, 1b0}, // SET_ATTACK_R
+            
+            // SET MOVE
+            c{3hx, 3hx, 4h6, 4hx, 6h1A,   1b0, 3hx,   1bx, 4hx, 1b0,   1b1, 3h7,   3h0, 1b0, 1b0}, // SET_MOVE_U
+            c{3hx, 3hx, 4h7, 4hx, 6h1A,   1b0, 3hx,   1bx, 4hx, 1b0,   1b1, 3h7,   3h0, 1b0, 1b0}, // SET_MOVE_D
+            c{3hx, 3hx, 4h8, 4hx, 6h1A,   1b0, 3hx,   1bx, 4hx, 1b0,   1b1, 3h7,   3h0, 1b0, 1b0}, // SET_MOVE_L
+            c{3hx, 3hx, 4h9, 4hx, 6h1A,   1b0, 3hx,   1bx, 4hx, 1b0,   1b1, 3h7,   3h0, 1b0, 1b0}, // SET_MOVE_R
+           
+            // DECR_TIME
+            c{3h2, 3hx, 4h0, 4h1, 6h01,   1b0, 3hx,   1bx, 4hx, 1b0,   1b1, 3h2,   3h0, 1b0, 1b0}, // DECR_TIME_0
+            c{3hx, 3h2, 4h1, 4h0, 6h33,   1b0, 3hx,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // DECR_TIME_1
+            c{3hx, 3hx, 4hx, 4hx, 6hxx,   1b0, 3hx,   1bx, 4hx, 1b0,   1b0, 3hx,   3h1, 1b0, 1b0}, // DECR_TIME_2
+           
+            // MOVE_NPC
+            c{3hx, 3hx, 4h1, 4hx, 6h1A,   1b0, 3hx,   1bx, 4hx, 1b0,   1b1, 3h5,   3h0, 1b0, 1b0}, // MOVE_NPC_0
+            c{3h5, 3hx, 4h0, 4hx, 6h1A,   1b0, 3hx,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // MOVE_NPC_1
+            c{3hx, 3hx, 4hA, 4h3, 6h33,   1b0, 3hx,   1b1, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // MOVE_NPC_2
+            c{3h5, 3h0, 4h0, 4h0, 6h39,   1b0, 3hx,   1bx, 4hx, 1b0,   1b1, 3h6,   3h0, 1b0, 1b0}, // MOVE_NPC_3
+            c{3h0, 3h6, 4h0, 4h0, 6h33,   1b0, 3hx,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // MOVE_NPC_4
+            c{3h6, 3hx, 4h0, 4h6, 6h00,   1b1, 3h3,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // MOVE_NPC_5
+            c{3h5, 3hx, 4h0, 4hx, 6h1A,   1b1, 3h0,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // MOVE_NPC_6
+            c{3h5, 3hx, 4h0, 4h1, 6h00,   1b0, 3hx,   1bx, 4hx, 1b0,   1b1, 3h5,   3h0, 1b0, 1b0}, // MOVE_NPC_7
+            c{3h5, 3hx, 4h0, 4h6, 6h35,   1b0, 3hx,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // MOVE_NPC_8
+            c{3h1, 3hx, 4h0, 4hx, 6h1A,   1b1, 3h2,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // MOVE_NPC_9
+            c{3hx, 3hx, 4h1, 4hx, 6h1A,   1b0, 3hx,   1bx, 4hx, 1b0,   1b1, 3h5,   3h0, 1b0, 1b0}, // MOVE_NPC_10
+            c{3h5, 3hx, 4h0, 4h6, 6h00,   1b0, 3hx,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // MOVE_NPC_11
+            c{3hx, 3hx, 4hA, 4h3, 6h33,   1b0, 3hx,   1b1, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // MOVE_NPC_12
+            c{3h5, 3hx, 4h0, 4hx, 6h1A,   1b1, 3h3,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // MOVE_NPC_13
+            c{3h5, 3hx, 4h0, 4h6, 6h00,   1b1, 3h0,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // MOVE_NPC_14
+            c{3h5, 3hx, 4h0, 4h1, 6h00,   1b0, 3hx,   1bx, 4hx, 1b0,   1b1, 3h5,   3h0, 1b0, 1b0}, // MOVE_NPC_15
+            c{3h5, 3hx, 4h0, 4h6, 6h35,   1b0, 3hx,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // MOVE_NPC_16
+            c{3hx, 3hx, 4hx, 4hx, 6hxx,   1b0, 3hx,   1bx, 4hx, 1b0,   1b0, 3hx,   3h2, 1b0, 1b0}, // MOVE_NPC_17
+           
+            // SPAWN NPC
+            c{3hx, 3hx, 4h3, 4hx, 6h1A,   1b0, 3hx,   1bx, 4hx, 1b0,   1b1, 3h5,   3h0, 1b0, 1b0}, // SPAWN_NPC_0
+            c{3h0, 3h5, 4h0, 4h0, 6h33,   1b0, 3hx,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // SPAWN_NPC_1
+            c{3h5, 3hx, 4h0, 4hx, 6h1A,   1b0, 3hx,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // SPAWN_NPC_2
+            c{3hx, 3hx, 4hA, 4h3, 6h33,   1b0, 3hx,   1b1, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // SPAWN_NPC_3
+            c{3h5, 3hx, 4h0, 4hx, 6h1A,   1b1, 3h3,   1bx, 4hx, 1b0,   1b0, 3hx,   3h3, 1b0, 1b0}, // SPAWN_NPC_4
+            
+            // ATTACK
+            c{3h3, 3hx, 4h0, 4h1, 6h35,   1b0, 3hx,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // ATTACK_0
+            c{3h3, 3hx, 4h0, 4h1, 6h01,   1b0, 3hx,   1bx, 4hx, 1b0,   1b1, 3h3,   3h0, 1b0, 1b0}, // ATTACK_1
+            c{3h0, 3hx, 4h0, 4hx, 6h1A,   1b1, 3h1,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // ATTACK_2
+            c{3hx, 3hx, 4h1, 4hx, 6h1A,   1b0, 3hx,   1bx, 4hx, 1b0,   1b1, 3h5,   3h0, 1b0, 1b0}, // ATTACK_3
+            c{3h0, 3hx, 4h0, 4h9, 6h38,   1b0, 3hx,   1bx, 4hx, 1b0,   1b1, 3h6,   3h0, 1b0, 1b0}, // ATTACK_4
+            c{3h6, 3h0, 4h0, 4h0, 6h33,   1b0, 3hx,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // ATTACK_5
+            c{3h6, 3hx, 4h0, 4h5, 6h33,   1b0, 3hx,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // ATTACK_6
+            c{3h6, 3hx, 4h0, 4hx, 6h1A,   1b0, 3hx,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // ATTACK_7
+            c{3hx, 3hx, 4hA, 4h3, 6h33,   1b0, 3hx,   1b1, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // ATTACK_8
+            c{3h4, 3hx, 4h0, 4h1, 6h00,   1b0, 3hx,   1bx, 4hx, 1b0,   1b1, 3h4,   3h0, 1b0, 1b0}, // ATTACK_9
+            c{3h6, 3hx, 4h0, 4hx, 6h1A,   1b1, 3h4,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // ATTACK_10
+            c{3h5, 3hx, 4h0, 4h1, 6h00,   1b0, 3hx,   1bx, 4hx, 1b0,   1b1, 3h5,   3h0, 1b0, 1b0}, // ATTACK_11
+            c{3hx, 3hx, 4hx, 4hx, 6hxx,   1b0, 3hx,   1bx, 4hx, 1b0,   1b0, 3hx,   3h6, 1b1, 1b0}, // ATTACK_12
+            c{3hx, 3hx, 4hx, 4hx, 6hxx,   1b0, 3hx,   1bx, 4hx, 1b0,   1b0, 3hx,   3h4, 1b0, 1b0}, // ATTACK_13
+            c{3h7, 3hx, 4h0, 4hx, 6h3A,   1b0, 3hx,   1bx, 4hx, 1b0,   1b1, 3h7,   3h0, 1b0, 1b0}, // ATTACK_14
+            
+            // MOVE_PLR
+            c{3h0, 3h7, 4h0, 4h0, 6h38,   1b0, 3hx,   1bx, 4hx, 1b0,   1b1, 3h6,   3h0, 1b0, 1b0}, // MOVE_PLR_0
+            c{3h6, 3hx, 4h0, 4h5, 6h33,   1b0, 3hx,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // MOVE_PLR_1
+            c{3h6, 3hx, 4h0, 4hx, 6h1A,   1b0, 3hx,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // MOVE_PLR_2
+            c{3hx, 3hx, 4hA, 4h3, 6h33,   1b0, 3hx,   1b1, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // MOVE_PLR_3
+            c{3h0, 3hx, 4h0, 4hx, 6h1A,   1b1, 3h0,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // MOVE_PLR_4
+            c{3h6, 3hx, 4h0, 4hx, 6h1A,   1b0, 3hx,   1bx, 4hx, 1b0,   1b1, 3h0,   3h0, 1b0, 1b0}, // MOVE_PLR_5
+            c{3h0, 3h1, 4h0, 4h0, 6h33,   1b0, 3hx,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // MOVE_PLR_6
+            c{3h0, 3hx, 4h0, 4hx, 6h1A,   1b1, 3h1,   1bx, 4hx, 1b0,   1b0, 3hx,   3h5, 1b0, 1b0}, // MOVE_PLR_7
+            
+            // GET_AMMO
+            c{3h3, 3hx, 4h0, 4h2, 6h00,   1b0, 3hx,   1bx, 4hx, 1b0,   1b1, 3h3,   3h0, 1b0, 1b0}, // GET_AMMO_0
+            c{3hx, 3h3, 4h2, 4h0, 6h35,   1b0, 3hx,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // GET_AMMO_1
+            c{3hx, 3hx, 4h2, 4hx, 6h1A,   1b0, 3hx,   1bx, 4hx, 1b0,   1b1, 3h3,   3h0, 1b0, 1b0}, // GET_AMMO_2
+            c{3hx, 3hx, 4h4, 4hx, 6h1A,   1b0, 3hx,   1bx, 4hx, 1b0,   1b1, 3h1,   3h0, 1b0, 1b0}, // GET_AMMO_3
+            c{3h0, 3h1, 4h0, 4h0, 6h33,   1b0, 3hx,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // GET_AMMO_4
+            c{3h1, 3hx, 4h0, 4hx, 6h1A,   1b0, 3hx,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // GET_AMMO_5
+            c{3hx, 3hx, 4hA, 4h3, 6h33,   1b0, 3hx,   1b1, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // GET_AMMO_6
+            c{3h1, 3hx, 4h0, 4hx, 6h1A,   1b0, 3hx,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // GET_AMMO_7
+            c{3hx, 3hx, 4hA, 4h4, 6h33,   1b0, 3hx,   1b1, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // GET_AMMO_8
+            c{3h1, 3hx, 4h0, 4hx, 6h1A,   1b1, 3h2,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // GET_AMMO_9
+            
+            // CLR_ATTACK
+            c{3hx, 3hx, 4h1, 4hx, 6h1A,   1b0, 3hx,   1bx, 4hx, 1b0,   1b1, 3h5,   3h0, 1b0, 1b0}, // CLR_ATTACK_0
+            c{3h5, 3hx, 4h0, 4hx, 6h1A,   1b0, 3hx,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // CLR_ATTACK_1
+            c{3hx, 3hx, 4hA, 4h4, 6h33,   1b0, 3hx,   1b1, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // CLR_ATTACK_2
+            c{3h5, 3hx, 4h0, 4hx, 6h1A,   1b1, 3h0,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // CLR_ATTACK_3
+            c{3h5, 3hx, 4h0, 4h1, 6h00,   1b0, 3hx,   1bx, 4hx, 1b0,   1b1, 3h5,   3h0, 1b0, 1b0}, // CLR_ATTACK_4
+            c{3h5, 3hx, 4h0, 4h6, 6h35,   1b0, 3hx,   1bx, 4hx, 1b0,   1b0, 3hx,   3h0, 1b0, 1b0}, // CLR_ATTACK_5
+            c{3h1, 3hx, 4h0, 4hx, 6h1A,   1b1, 3h2,   1bx, 4hx, 1b0,   1b0, 3hx,   3h6, 1b0, 1b0}  // CLR_ATTACK_6
+    }) 
+    
+    always {
+        out = MEMORY[state]
+    }
+}

@@ -1,0 +1,24 @@
+/******************************************************************************
+
+   pulser: This module outputs a pulse at a variable frequency.
+   The clock is 1Hz by default. Different frequencies can be achieved by
+   multiplying or dividing the frequency using the MUL and DIV parameters.
+   
+******************************************************************************/
+module pulser #(
+    MUL = 1 : 0 < MUL <= Globals.CLOCK_FREQ/2, // factor to multiply freq by, cannot exceed half the clk frequency
+    DIV = 1 : 0 < DIV                          // factor to divide freq by
+)(
+    input clk,  // clock
+    input rst,  // reset
+    output out
+) {
+    const TOP_VALUE = ((Globals.CLOCK_FREQ*DIV)/MUL)-1
+    sig top_value[$width(TOP_VALUE)] = TOP_VALUE
+    
+    counter inc(.clk(clk), .rst(rst), #SIZE($width(TOP_VALUE)), #TOP(TOP_VALUE))
+    
+    always {
+        out = ~|(inc.value ^ top_value)
+    }
+}

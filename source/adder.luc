@@ -1,0 +1,29 @@
+/******************************************************************************
+
+   adder: This module will perform signed addition or subtraction on two inputs
+   and output the result along with zero, signed overflow and negative bits.
+   
+******************************************************************************/
+module adder #(
+    SIZE = 32 : SIZE > 1
+)(
+    input a[SIZE],
+    input b[SIZE],
+    input alufn0, // 0 = ADD, 1 = SUB
+    output out[SIZE],
+    output z, // output is zero
+    output v, // signed overflow occurred
+    output n  // output is negative
+) {
+    sig xb[SIZE] = b ^ SIZEx{alufn0};
+    rca rca (#SIZE(SIZE), .cin(alufn0), .b(xb), .a(a));
+    
+    always {
+        // outputs
+        out = rca.s;
+        z = ~|(rca.s);
+        v = (a[SIZE-1]  & xb[SIZE-1] & ~rca.s[SIZE-1]) |
+            (~a[SIZE-1] &~xb[SIZE-1] &  rca.s[SIZE-1])
+        n = rca.s[SIZE-1];
+    }
+}

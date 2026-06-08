@@ -1,0 +1,21 @@
+/******************************************************************************
+
+   fa: This module is a full adder unit that can be cascaded into a
+   ripple-carry adder.
+   
+   It adds three binary digits: a, b and cout from a previous addition,
+   and outputs the sum bit s and a carry-out bit cout.
+   
+******************************************************************************/
+module fa (
+    input a,
+    input b,
+    input cin,
+    output s,
+    output cout
+) {
+    always {
+        s = a ^ b ^ cin
+        cout = (a & b) | (a & cin) | (b & cin)
+    }
+}

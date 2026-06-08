@@ -1,0 +1,51 @@
+global Globals {
+    const CLEAR_ATTACK_DELAY_DIVS = 20 // 20, about 53ms
+    
+    const CLOCK_FREQ = 20_000_000 // 20MHz
+    const SEG_SELECT_DIV = 12  // for multi_seven_seg
+    
+    // game parameters
+    const STARTING_COORDS = 8h77 // (7, 7)
+    const TIME_TO_WIN = 60 // 60
+    const MAX_AMMO = 12 // 12
+    const AMMO_PER_PICKUP = 4 // 4
+    
+    // direction codes
+    const UP = 10b10001_00000
+    const DOWN = 10b00001_00000
+    const LEFT = 10b00000_00001
+    const RIGHT = 10b00000_10001
+    
+    // colors
+    const BG_COLOR = 24h000000 // black
+    const AMMO_COLOR = 24h00FF00 // green
+    const ENEMY_COLOR = 24hFF0000 // red
+    const LASER_COLOR = 24h00FFFF // cyan
+    const BLAST_COLOR = 24hFF5500 // orange
+    const SLASH_COLOR = 24hFF00FF // purple
+    
+    // player color (smooth transition)
+    const PLAYER_COLOR_0_AMMO = 24hFFFFFF // white
+    const PLAYER_COLOR_1_AMMO = 24h8080FF
+    const PLAYER_COLOR_2_AMMO = 24h8080FF
+    const PLAYER_COLOR_3_AMMO = 24h8080FF
+    const PLAYER_COLOR_4_AMMO = 24h4D4DFF
+    const PLAYER_COLOR_5_AMMO = 24h4D4DFF
+    const PLAYER_COLOR_6_AMMO = 24h4D4DFF
+    const PLAYER_COLOR_7_AMMO = 24h0000FF
+    const PLAYER_COLOR_8_AMMO = 24h0000FF
+    const PLAYER_COLOR_9_AMMO = 24h0000FF
+    const PLAYER_COLOR_10_AMMO = 24h0000FF
+    const PLAYER_COLOR_11_AMMO = 24h0000FF
+    const PLAYER_COLOR_12_AMMO = 24h0000FF // blue
+    
+    // difficulties
+    const EASY = 2b00
+    const MEDIUM = 2b01
+    const HARD = 2b10
+    
+    // weapons
+    const LASER = 2b00
+    const BLAST = 2b01
+    const SLASH = 2b10
+}

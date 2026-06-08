@@ -1,0 +1,38 @@
+/******************************************************************************
+
+   game_clocks: This module outputs pulses to the input controller to trigger timed
+   events in the game. The frequency of the pulses depends on the current difficulty.
+   
+******************************************************************************/
+module game_clocks (
+    input clk,
+    input rst,
+    input difficulty[2],
+    output timer,
+    output move_enemy,
+    output spawn_enemy
+) {
+    .clk(clk), .rst(rst) {
+        pulser pulse_05hz(#MUL(1), #DIV(2))
+        pulser pulse_1hz
+        pulser pulse_3hz(#MUL(3), #DIV(1))
+    }
+    
+    always {
+        timer = pulse_1hz.out
+        case (difficulty) {
+            Globals.EASY:
+                move_enemy = pulse_05hz.out
+                spawn_enemy = pulse_05hz.out
+            Globals.MEDIUM:
+                move_enemy = pulse_1hz.out
+                spawn_enemy = pulse_1hz.out
+            Globals.HARD:
+                move_enemy = pulse_1hz.out
+                spawn_enemy = pulse_3hz.out
+            default:
+                move_enemy = 1b0
+                spawn_enemy = 1b0
+        }
+    }
+}
